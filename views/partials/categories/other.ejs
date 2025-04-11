@@ -1,0 +1,72 @@
+<!-- <h3 onclick="toggleVisibility('other')">خدمات أخرى 🔽</h3>
+    <div id="other" style="display:none;"> -->
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="21" data-price="40" onchange="toggleQuantity(this)">
+          تركيب حامل تلفزيون (<span class="service-price">40</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="35" data-price="30" onchange="toggleQuantity(this)">
+          تركيب لوحة (<span class="service-price">30</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="46" data-price="40" onchange="toggleQuantity(this)">
+          تغيير او تركيب قفل الأبواب (<span class="service-price">40</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="47" data-price="40" onchange="toggleQuantity(this)">
+          تغيير او تركيب مقبض الأبواب (<span class="service-price">40</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      
+              <!-- </div>
+          </div> -->
+          <script>
+            function toggleQuantity(checkbox) {
+      const container = checkbox.closest('.service-item');
+      const qtyInput = container.querySelector('.qty-input');
+    
+      if (checkbox.checked) {
+        qtyInput.style.display = 'inline-block';
+        qtyInput.required = true;
+      } else {
+        qtyInput.style.display = 'none';
+        qtyInput.required = false;
+        qtyInput.value = 1;
+      }
+    
+      updateServicePrice(container);
+      calculateTotalPrice();
+    }
+    function updateServicePrice(container) {
+      const checkbox = container.querySelector('input[type="checkbox"]');
+      const priceSpan = container.querySelector('.service-price');
+      const qty = parseInt(container.querySelector('.qty-input')?.value || 1);
+      const basePrice = parseFloat(checkbox.dataset.price);
+    
+      const total = checkbox.checked ? basePrice * qty : basePrice;
+      priceSpan.textContent = total.toFixed(2);
+    }
+    document.addEventListener("input", function (event) {
+      if (event.target.classList.contains("qty-input")) {
+        const container = event.target.closest(".service-item");
+        updateServicePrice(container);
+        calculateTotalPrice();
+      }
+    });
+    
+            </script>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تعديل المستخدم</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background-color: #7ebee1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px 25px;
+      border-radius: 12px;
+      box-shadow: 0px 5px 12px rgba(0, 0, 0, 0.15);
+      max-width: 100%;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    h2 {
+      color: #34507c;
+      margin-bottom: 20px;
+      font-size: 20px;
+      text-align: center;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      font-weight: bold;
+      text-align: right;
+      display: block;
+      margin-bottom: 5px;
+      color: #34507c;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 9px;
+      margin-bottom: 14px;
+      border: 2px solid #34507c;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #f15a29;
+      outline: none;
+      box-shadow: 0px 0px 8px rgba(241, 90, 41, 0.4);
+    }
+
+    button {
+      background-color: #f15a29;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #d14a22;
+    }
+
+    .delete-btn {
+      background-color: #e63946;
+    }
+
+    .delete-btn:hover {
+      background-color: #c82333;
+    }
+
+    @media (max-width: 400px) {
+      input, button {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>تعديل المستخدم</h2>
+    <form id="editUserForm" action="/updateUser/<%= id %>" method="POST">
+      <label>الاسم الكامل:</label>
+      <input type="text" name="fullName" value="<%= fullname %>" required>
+
+      <label>اسم المستخدم:</label>
+      <input type="text" name="username" value="<%= username %>" required>
+
+      <label>كلمة المرور (اتركه فارغًا إذا لم ترغب في تغييره):</label>
+      <input type="password" name="password" placeholder="********">
+
+      <label>اسم المورد:</label>
+      <input type="text" name="supplier" value="<%= supplier %>">
+
+      <label>الفرع:</label>
+      <input type="text" name="branch" value="<%= branch %>">
+
+      <label>رقم الهاتف:</label>
+      <input type="text" name="phone" value="<%= phone %>">
+
+      <label>البريد الإلكتروني:</label>
+      <input type="email" name="email" value="<%= email %>">
+
+      <button type="submit">💾 حفظ التعديلات</button>
+      <button type="button" class="delete-btn" onclick="deleteUser('<%= id %>')">🗑️ حذف المستخدم</button>
+    </form>
+  </div>
+
+  <script>
+    async function deleteUser(id) {
+      if (confirm("هل أنت متأكد من رغبتك في حذف هذا المستخدم؟")) {
+        try {
+          const response = await fetch(`/deleteUser/${id}`, { method: "DELETE" });
+          const result = await response.text();
+
+          if (response.ok) {
+            alert("تم حذف المستخدم بنجاح!");
+            window.location.href = "/admin_dashboard";
+          } else {
+            alert("حدث خطأ أثناء الحذف: " + result);
+          }
+        } catch (error) {
+          console.error("Error deleting user:", error);
+          alert("حدث خطأ أثناء عملية الحذف.");
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>

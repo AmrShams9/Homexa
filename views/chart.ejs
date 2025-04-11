@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Gantt Chart Full Page</title>
+  <style>
+.chartWrapper {
+    width: 100%;
+    height: 400px; /* ⬅️ Adjust this height as needed */
+    margin: auto;
+    padding: 10px;
+  }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 50%;
+      font-family: sans-serif;
+      background-color: #f5faff;
+    }
+    .chartMenu {
+      height: 40px;
+      background: #1A1A1A;
+      color: rgba(54, 162, 235, 1);
+      display: flex;
+      align-items: center;
+      padding-left: 10px;
+      font-size: 18px;
+    }
+    #myChart {
+      width: 100%;
+      /* height: calc(100vh - 40px); */
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="chartMenu">
+    Gantt Chart  (<span id="chartVersion"></span>)
+  </div>
+  <div class="chartWrapper">
+  <canvas id="myChart"></canvas>
+</div>
+
+  <!-- Chart.js & Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
+  <script>
+    const today = luxon.DateTime.now().toISODate();
+
+    const statusColors = {
+      'New': '#aaa',
+      'Assigned': '#3498db',
+      'In Progress': '#27ae60',
+      'On Hold': '#e67e22',
+      'completed': '#2ecc71',
+      'canceled': '#e74c3c'
+    };
+
+    const timeBlocks = {
+      "9-12 ص": { start: "09:00", end: "12:00" },
+      "1-5 م": { start: "13:00", end: "17:00" },
+      "6-9 م": { start: "18:00", end: "21:00" }
+    };
+
+    const config = {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Tasks',
+          data: [],
+          backgroundColor: [],
+          borderColor: [],
+          borderWidth: 1,
+          borderRadius: 5
+        }]
+      },
+      options: {
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const task = ctx.raw;
+                return [
+                  `📅 ${task.x[0]} → ${task.x[1]}`,
+                  `💼 الخدمات: ${task.services?.join(', ') || 'لا توجد'}`,
+                  `💰 السعر: ${task.price || 0} SAR`,
+                  `📌 الحالة: ${task.status}`,
+                  `🖱️ اضغط لفتح صفحة التعديل`
+                ];
+              }
+            }
+          },
+          annotation: {
+            annotations: {
+              todayLine: {
+                type: 'line',
+                borderColor: 'red',
+                borderWidth: 2,
+                label: {
+                  content: 'Today',
+                  enabled: true,
+                  position: 'start',
+                  color: 'red'
+                },
+                scaleID: 'x',
+                value: today
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              unit: 'day',
+              tooltipFormat: 'yyyy-MM-dd',
+            },
+            title: {
+              display: true,
+              text: 'التاريخ'
+            },
+            min: '2025-03-27',
+            max: '2025-04-15'
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'المهام'
+            }
+          }
+        }
+      },
+      plugins: [Chart.registry.getPlugin('annotation')]
+    };
+
+    const chart = new Chart(document.getElementById('myChart'), config);
+    document.getElementById('chartVersion').innerText = Chart.version;
+
+    async function loadTasks() {
+      try {
+        const response = await fetch('/gettasks');
+        const tasks = await response.json();
+
+        const labels = [];
+        const bars = [];
+        const bgColors = [];
+        const borderColors = [];
+
+        tasks.forEach(task => {
+          const {
+            customerName,
+            id,
+            serviceDate,
+            serviceTime,
+            status,
+            services,
+            totalPrice
+          } = task;
+
+          const time = timeBlocks[serviceTime];
+          if (!serviceDate || !time) return;
+
+          const start = `${serviceDate}T${time.start}`;
+          const end = `${serviceDate}T${time.end}`;
+          const label = `${customerName} (#${id})`;
+
+          labels.push(label);
+          bars.push({
+            x: [start, end],
+            y: label,
+            services: services || [],
+            price: totalPrice,
+            status,
+            custom: { id }
+          });
+
+          const color = statusColors[status] || '#888';
+          bgColors.push(color + '80');
+          borderColors.push(color);
+        });
+
+        chart.data.labels = labels;
+        chart.data.datasets[0].data = bars;
+        chart.data.datasets[0].backgroundColor = bgColors;
+        chart.data.datasets[0].borderColor = borderColors;
+        chart.update();
+      } catch (err) {
+        console.error("Failed to fetch tasks:", err);
+      }
+    }
+
+    loadTasks();
+
+    document.getElementById('myChart').onclick = function(evt) {
+      const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+      if (points.length) {
+        const taskData = chart.data.datasets[0].data[points[0].index];
+        const taskId = taskData.custom?.id;
+        if (taskId) {
+          window.location.href = `/edit_task/${taskId}`;
+        }
+      }
+    };
+  </script>
+</body>
+</html>

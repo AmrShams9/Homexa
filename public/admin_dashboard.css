@@ -1,0 +1,446 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+    direction: rtl;
+}
+.container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: right;
+}
+.tabs {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.tabs button {
+    padding: 10px 15px;
+    background-color: #7ebee1;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.tabs button:hover {
+    background-color: #34507c;
+}
+.content {
+    display: none;
+}
+.active {
+    display: block;
+}
+input, select, button {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+button {
+    background-color: #f15a29;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+.orders {
+    margin-top: 20px;
+}
+.addUser {
+    margin-top: 20px;
+}
+.order {
+    background: #e3f2fd;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+} 
+  /* .location-input {
+display: flex;
+align-items: center;
+border: 1px solid #ccc;
+border-radius: 5px;
+overflow: hidden;
+width: 100%;
+max-width: 400px;
+position: relative;
+} */
+
+/* .location-input input {
+flex: 1;
+padding: 10px;
+border: 1px solid #ccc;
+outline: none;
+font-size: 14px;
+} */
+
+.location-input button {
+background: #f15a29;
+color: white;
+border: none;
+padding: 5px;
+cursor: pointer;
+font-size: 14px;
+position: absolute;
+left: 5px; /* نقل الزر إلى أقصى اليسار */
+right: auto; /* إزالة القيم الافتراضية */
+top: 35%;
+transform: translateY(-50%);
+border-radius: 5px;
+width: 35px;
+height: 30px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.location-input button:hover {
+background: #d04a20;}
+.container img {
+max-width: 200px;
+width: 195px; /* عرض أقصى للشعار */
+height: auto; /* يحافظ على التناسب */
+display: block;
+margin: 0 auto 15px; 
+} 
+#addUser {
+margin-top: 20px;
+/* background: white; */
+padding: 20px;
+/* border-radius: 10px; */
+/* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); */
+text-align: right;
+/* width: 100%; */
+max-width: 1200px; /* تصغير العرض */
+margin-left: auto;
+margin-right: auto;
+}
+
+#addUserForm{
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#addUserForm input, 
+#addUserForm button {
+/* width: 100%;  */
+/* max-width: 600px;  */
+display: block;
+margin: 10px auto; /* توسيط العناصر داخل النموذج */
+padding: 8px;
+font-size: 14px;
+}
+
+/* تحسين المظهر عند تحريك الفأرة فوق الزر */
+#addUserForm button:hover {
+background-color: #d04a20;
+}
+
+body {
+    font-family: 'Tajawal', sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+    direction: rtl;
+}
+
+h2 {
+    color: #333;
+}
+
+.chart-container {
+    margin: 30px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 1000px;
+    overflow-x: auto;
+}
+
+svg {
+    width: 100%;
+    height: auto;
+}
+
+.task-bar {
+    stroke: #333;
+    stroke-width: 1;
+    rx: 5;
+    ry: 5;
+    opacity: 0.9;
+}
+
+.task-bar:hover {
+    opacity: 1;
+    stroke-width: 2;
+}
+
+.axis path,
+.axis line {
+    stroke: #aaa;
+}
+
+.grid line {
+    stroke: #ddd;
+    stroke-dasharray: 3;
+}
+
+.label {
+    font-size: 14px;
+    fill: #555;
+}
+.full-width-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 10px 15px; /* المسافة الأفقية 10px والمسافة الرأسية 15px */
+    margin-top: 20px;
+}
+
+.full-width-table th,
+.full-width-table td {
+    padding: 12px 15px;
+    text-align: right;
+    border-bottom: 1px solid #ddd;
+}
+
+.full-width-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+}
+
+.full-width-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* جعل الأعمدة متساوية في العرض */
+.full-width-table th:nth-child(1),
+.full-width-table td:nth-child(1) {
+    width: 18%;
+}
+
+.full-width-table th:nth-child(2),
+.full-width-table td:nth-child(2) {
+    width: 14%;
+}
+
+.full-width-table th:nth-child(3),
+.full-width-table td:nth-child(3) {
+    width: 14%;
+}
+
+.full-width-table th:nth-child(4),
+.full-width-table td:nth-child(4) {
+    width: 12%;
+}
+
+.full-width-table th:nth-child(5),
+.full-width-table td:nth-child(5) {
+    width: 15%;
+}
+
+.full-width-table th:nth-child(6),
+.full-width-table td:nth-child(6) {
+    width: 18%;
+}
+
+.full-width-table th:nth-child(7),
+.full-width-table td:nth-child(7) {
+    width: 9%;
+    text-align: center;
+}
+
+.button-group {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  
+  .edit-btn, .delete-btn {
+      color: white;
+      padding: 4px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 12px;
+      flex: 1; /* Ensures equal width */
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap; /* prevents wrapping */
+  }
+  
+  .edit-btn {
+      background-color: #4CAF50;
+  }
+  
+  .delete-btn {
+      background-color: #ec1919;
+  }
+
+.edit-btn:hover {
+    background-color: #45a049;
+}
+.delete-btn:hover {
+    background-color: #9e1b1b;
+}
+.input-group {
+    display: flex;
+    align-items: center;
+}
+
+.input-group input {
+    flex-grow: 0; /* Prevents full stretching */
+    width: 200px; /* Set your desired width */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px 0 0 5px;
+}
+
+.input-group button {
+    padding: 4px 6px; /* Reduced padding */
+    border: 1px solid #ccc;
+    /* border-radius: 0 5px 5px 0; */
+    background-color: #ccc;
+    color: white;
+    cursor: pointer;
+    font-size: 12px; /* Smaller font size */
+    width: 30px; /* Fixed smaller width */
+    height: 30px; /* Fixed height for neat appearance */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
+}
+
+.input-group button:hover {
+    background-color: #e9ecef;
+
+}
+.task-group:hover .task-bar {
+    opacity: 0.8;
+    stroke: #333;
+    stroke-width: 2px;
+}
+#map {
+    height: 300px;
+    width: 500px;
+margin: 15px auto;}
+#map-search {
+    margin-top: 10%;
+    width: 200px; /* Adjust width as desired */
+    padding: 5px 8px;
+    font-size: 12px; /* Smaller font */
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    outline: none;
+    margin: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+input, select, button {
+    /* width: 100%; */
+    padding: 10px;
+    margin: 12px 0;
+    /* margin-left: 10px; */
+    /* margin-right: 10px; */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+#chartContainer {
+    overflow-x: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+.task {
+    stroke:#1B3A57;
+    cursor: pointer;
+}
+
+.task:hover {
+    fill: #2D65A2;
+}
+
+.axis path,
+.axis line {
+    stroke: #ccc;
+}
+
+.axis text {
+    font-size: 12px;
+}
+
+.task:hover rect {
+    fill: #4472c4;
+}
+body { font-family: 'Arial', sans-serif; background-color: #f9f9f9; text-align: right; direction: rtl; padding: 20px; }
+        .container { margin: auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h3 { margin-bottom: 10px; cursor: pointer; user-select: none; }
+        label { display: block; margin-bottom: 5px;
+            text-align: right; }
+            /* input[type="checkbox"] {
+                transform: scale(0.6); /* تصغير الحجم 
+                margin-left: 10px;
+                vertical-align: middle;
+              }
+        */
+        #totalPrice { font-size: 1.2em; color: #f15a29; }
+        input[type="checkbox"] {
+            width: auto !important;
+            padding: 0;
+            margin-left: 8px;
+            transform: scale(1.2);
+            vertical-align: middle;
+        }
+
+        #ganttChart {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            min-width: 800px;
+            max-width: 1200px;
+            width: 100%;
+          }
+          .chart-container {
+            margin: 30px auto;
+            padding: 20px;
+            overflow-x: auto;
+          }
+          .tooltip {
+            font-family: 'Tajawal', sans-serif;
+            font-size: 13px;
+            z-index: 9999;
+          }
+          .qty-input {
+            width: 60px;
+            font-size: 0.8em;
+            padding: 5px 6px;
+            margin-right: 6px;
+          }
+        
+             
+
+
+
+

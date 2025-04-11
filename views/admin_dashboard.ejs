@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم</title>
+    <link rel="stylesheet" href="\admin_dashboard.css">
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="/scripts.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcbG4Bb4SRpgeVxp-imrm4X3CyS_e2deE&libraries=places"></script>
+
+</head>
+<body>
+   
+    <div class="container">
+        <img src="/HomeexaBlueWhite.png" alt="logo">
+        <h1>لوحة التحكم </h1>
+        <div class="tabs">
+            <button onclick="showPage('orders')">📦 الطلبات</button>
+            <button onclick="showPage('addUser')">➕ إضافة مستخدم</button>
+            <button onclick="showPage('viewUsers')">👥 عرض المستخدمين</button>
+            <button onclick="showPage('charts')">📊 الإحصائيات</button>
+        </div>
+
+        <div id="orders" class="content active">
+            <h2>إضافة طلب جديد</h2>
+            <form id="orderForm">
+                <div class="input-group">
+                    <input type="tel" name="customerPhone" id="customerPhone"
+                    placeholder="رقم العميل"
+                    pattern="05[0-9]{8}"
+                    maxlength="10"
+                    minlength="10"
+                    required
+                    title="يجب أن يبدأ الرقم بـ 05 ويحتوي على 10 أرقام">
+                <button type="button" onclick="searchOrderByPhone()">🔍</button>
+            </div>
+    
+                <input type="text" name="customerName" id="customerName" placeholder="اسم العميل" required>
+                
+                <!-- <div class="container"> -->
+                    <div class="location-input">
+                        <input type="text" name="customerLocation" id="customerLocation" placeholder="اضغط لتحديد موقعك" readonly>
+                    </div>
+                
+                    <input type="hidden" name="customerLat" id="customerLat">
+                    <input type="hidden" name="customerLng" id="customerLng">
+                
+                    <input id="map-search" class="map-search" type="text" placeholder="ابحث عن الموقع">
+                    <div id="map"></div>
+                    <input type="date" name="serviceDate" id="serviceDate" required>
+                
+    
+                    <h2>اختر الخدمات المطلوبة:</h2>
+    
+                    <%- include('partials/services-selection') %>
+    
+               
+    
+                <select name="serviceTime" id="serviceTime" required>
+                    <option value="">اختر وقت الخدمة</option>
+                    <option value="9-12 ص">9:00 - 12:00 صباحًا</option>
+                    <option value="1-5 م">1:00 - 5:00 مساءً</option>
+                    <option value="6-9 م">6:00 - 9:00 مساءً</option>
+                </select>
+    
+                <select name="paymentMethod" id="paymentMethod" required>
+                    <option value="">اختر طريقة الدفع</option>
+                    <option value="دفع لدى المعرض">دفع لدى المعرض</option>
+                    <option value="الدفع عند التركيب">الدفع عند التركيب</option>
+                </select>
+                <h4>الإجمالي بدون ضريبة: <span id="baseTotal">0</span> SAR</h4>
+    <h4>ضريبة القيمة المضافة (15%): <span id="vatAmount">0</span> SAR</h4>
+   <h4><strong>الإجمالي الكلي: <span id="totalPrice">0</span> SAR</strong></h4>
+    
+                <button type="submit">إضافة الطلب</button>
+            </form>
+        
+        
+    
+            <div class="orders">
+                <h2>الطلبات</h2>
+                <div id="ordersList"></div>
+            </div>
+        </div>
+   
+
+        <div id="addUser" class="content">
+            <h2>إضافة مستخدم جديد</h2>
+            <form id="addUserForm">
+                <input type="text" id="fullName" placeholder="الاسم" required>
+                <input type="text" id="username" placeholder="اسم المستخدم" required>
+                <input type="password" id="password" placeholder="كلمة المرور" required>
+                <input type="text" id="supplierName" placeholder="اسم المورد" required>
+                <input type="text" id="branch" placeholder="الفرع" required>
+                <input type="text" id="phone" placeholder="رقم الجوال" required>
+                <input type="email" id="email" placeholder="البريد الإلكتروني" required>
+                <button type="submit">إضافة المستخدم</button>
+            </form>
+        </div>
+
+        <div id="viewUsers" class="content">
+            <h2>عرض جميع المستخدمين</h2>
+            <table id="usersTable" class="full-width-table">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>اسم المستخدم</th>
+                        <th>المورد</th>
+                        <th>الفرع</th>
+                        <th>رقم الجوال</th>
+                        <th>البريد الإلكتروني</th>
+                        <th>تعديل</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTable">
+                    <!-- سيتم تعبئتها ديناميكيًا -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- تم إصلاح قسم الإحصائيات ليكون مثل الأقسام الأخرى -->
+        <div id="charts" class="content">
+            <h2>الإحصائيات</h2>
+                <%- include('chart') %>
+            
+    </div>
+
+     <script>
+       // وظيفة إظهار الصفحات
+        function showPage(pageId) {
+    document.querySelectorAll('.content').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    const selectedPage = document.getElementById(pageId);
+    if (selectedPage) {
+        selectedPage.classList.add('active');
+    }
+    
+    // تحميل البيانات عند اختيار صفحة الإحصائيات
+    if (pageId === "charts") {
+        fetchTasksAndRenderChart();
+    }
+}
+
+
+document.getElementById("orderForm").addEventListener("submit", async function(event) {
+  event.preventDefault();
+
+  const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                                .map(service => service.dataset.id);
+
+  const totalPrice = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                          .reduce((sum, service) => sum + parseFloat(service.dataset.price), 0);
+
+  const orderData = {
+    customerPhone: document.getElementById("customerPhone").value,
+    customerName: document.getElementById("customerName").value,
+    customerLat: parseFloat(document.getElementById("customerLat").value),
+    customerLng: parseFloat(document.getElementById("customerLng").value),
+    serviceDate: document.getElementById("serviceDate").value, // ✅ added this
+    serviceTime: document.getElementById("serviceTime").value,
+    paymentMethod: document.getElementById("paymentMethod").value,
+    totalPrice: parseFloat(document.getElementById("totalPrice").innerText),
+    services: selectedServices // ✅ only one definition
+  };
+
+  try {
+    const response = await fetch("/addtask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderData),
+    });
+
+    const result = await response.json();
+    if (response.ok && result.success) {
+      alert("تم إرسال الطلب بنجاح!");
+      document.getElementById("orderForm").reset();
+      document.getElementById("totalPrice").innerText = "0";
+    } else {
+      alert("حدث خطأ: " + (result.error || result.message));
+    }
+  } catch (error) {
+    console.error("Error submitting order:", error);
+    alert("حدث خطأ أثناء إرسال الطلب.");
+  }
+});
+
+// جلب الطلبات النشطة وعرضها
+async function fetchOrders() {
+    try {
+        const response = await fetch("/gettasks");
+        const orders = await response.json();
+
+        const ordersList = document.getElementById("ordersList");
+        if (!ordersList) {
+            console.error("العنصر ordersList غير موجود في الصفحة!");
+            return;
+        }
+
+        ordersList.innerHTML = "";
+
+        orders.forEach(order => {
+            // إذا كانت الخدمات مصفوفة من الكائنات أو أسماء الخدمات
+            const servicesHTML = order.services && order.services.length
+    ? order.services.join(' - ')
+    : 'لا توجد خدمات';
+
+const orderItem = `<div class="order">
+    <p><strong>رقم الطلب:</strong> ${order.id}</p>
+     <p><strong>تاريخ انشاء الطلب :</strong> ${order.createdAt}</p>
+    <p><strong>العميل:</strong> ${order.customerName}</p>
+    <p><strong>الموقع:</strong> <a href="https://www.google.com/maps?q=${order.customerLat},${order.customerLng}" target="_blank">عرض الموقع</a></p>
+    <p><strong>الخدمات:</strong> ${servicesHTML}</p>
+    <p><strong>وقت الخدمة:</strong> ${order.serviceTime}</p>
+    <p><strong>طريقة الدفع:</strong> ${order.paymentMethod}</p>
+    <p><strong>السعر الإجمالي:</strong> ${order.totalPrice || 0} SAR</p>
+    <p><strong>الحالة:</strong> ${order.status || 'New'}</p>
+    <div class="button-group">
+        <button class="edit-btn" onclick="editOrder(${order.id})">✏️ تحرير</button>
+        <button class="delete-btn" onclick="deleteOrder(${order.id})">🗑️ حذف</button>
+    </div>
+    <hr>
+</div>`;
+            ordersList.innerHTML += orderItem;
+        });
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+    }
+}
+
+
+        
+       
+        
+        
+        
+        function addUserToTable(user) {
+            const usersTable = document.getElementById("usersTable");
+            const row = `<tr>
+                <td>${user.fullName}</td>
+                <td>${user.username}</td>
+                <td>${user.supplier}</td>
+                <td>${user.branch}</td>
+                <td>${user.phone}</td>
+                <td>${user.email}</td>
+                <td><a href="/editUser" class="edit-btn">✏️ تعديل</a></td>
+            </tr>`;
+            usersTable.innerHTML += row;
+        }
+        // استدعاء fetchOrders عند تحميل الصفحة
+window.addEventListener('DOMContentLoaded', fetchOrders);
+    </script>
+   
+    <script>
+        function toggleVisibility(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.style.display = section.style.display === "none" ? "block" : "none";
+        }
+    
+        document.getElementById("orderForm").addEventListener("change", function() {
+    let baseTotal = 0;
+
+    document.querySelectorAll('input[type="checkbox"]:checked').forEach(service => {
+        const container = service.closest(".service-item");
+        const qtyInput = container.querySelector(".qty-input");
+        const quantity = parseInt(qtyInput?.value || 1);
+        const price = parseFloat(service.dataset.price);
+        baseTotal += price * quantity;
+    });
+
+    const vat = baseTotal * 0.15;
+    const grandTotal = baseTotal + vat;
+
+    document.getElementById('baseTotal').innerText = baseTotal.toFixed(2);
+    document.getElementById('vatAmount').innerText = vat.toFixed(2);
+    document.getElementById('totalPrice').innerText = grandTotal.toFixed(2);
+});
+document.addEventListener("input", function (event) {
+  if (event.target.classList.contains("qty-input")) {
+    document.getElementById("orderForm").dispatchEvent(new Event('change'));
+  }
+});
+    
+       
+    </script>  
+</body>
+</html>

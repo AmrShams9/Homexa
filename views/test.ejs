@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نموذج إضافة طلب جديد</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f9f9f9; text-align: right; direction: rtl; padding: 20px; }
+        .container { max-width: 700px; margin: auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h3 { margin-bottom: 10px; cursor: pointer; user-select: none; }
+        label { display: block; margin-bottom: 5px; }
+        input[type="checkbox"] { margin-left: 10px; }
+        input[type="submit"] { margin-top: 20px; padding: 10px 20px; background-color: #f15a29; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #totalPrice { font-size: 1.2em; color: #f15a29; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <form action="/addtask" method="POST" id="orderForm">
+        <h2>اختر الخدمات المطلوبة:</h2>
+
+        <%- include('partials/services-selection') %>
+
+
+        <h4>الإجمالي: <span id="totalPrice">0</span> SAR</h4>
+        <input type="submit" value="إرسال الطلب">
+    </form>
+</div>
+
+<script>
+    function toggleVisibility(sectionId) {
+        const section = document.getElementById(sectionId);
+        section.style.display = section.style.display === "none" ? "block" : "none";
+    }
+
+    document.getElementById("orderForm").addEventListener("change", function() {
+        let total = 0;
+        document.querySelectorAll('input[type="checkbox"]:checked').forEach(service => {
+            total += parseFloat(service.dataset.price);
+        });
+        document.getElementById('totalPrice').innerText = total;
+    });
+
+    document.getElementById("orderForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+        const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                                      .map(service => service.dataset.id);
+        fetch("/addtask", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ services: selectedServices })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if(result.success) {
+                alert("تم إرسال الطلب بنجاح!");
+                window.location.reload();
+            } else {
+                alert("حدث خطأ: " + result.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+</script>
+</body>
+</html>

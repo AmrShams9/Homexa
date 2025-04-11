@@ -1,0 +1,21 @@
+<div>
+    <h3 onclick="toggleVisibility('electricity')">خدمات الكهرباء 🔽</h3>
+    <div id="electricity" style="display:none;">
+        <%- include('./categories/electricity.ejs') %>
+    </div>
+
+    <h3 onclick="toggleVisibility('plumbing')">خدمات السباكة 🔽</h3>
+    <div id="plumbing" style="display:none;">
+        <%- include('./categories/plumbing.ejs') %>
+    </div>
+
+    <h3 onclick="toggleVisibility('smart')">خدمات سمارت 🔽</h3>
+    <div id="smart" style="display:none;">
+        <%- include('./categories/smart.ejs') %>
+    </div>
+
+    <h3 onclick="toggleVisibility('other')">خدمات أخرى 🔽</h3>
+    <div id="other" style="display:none;">
+        <%- include('./categories/other.ejs') %>
+    </div>
+</div>

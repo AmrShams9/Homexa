@@ -1,0 +1,280 @@
+<!-- <h3 onclick="toggleVisibility('plumbing')">خدمات السباكة 🔽</h3>
+    <div id="plumbing" style="display:none;"> -->
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="1" data-price="400" onchange="toggleQuantity(this)">
+          افحص سباكة بيتك (<span class="service-price">400</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="7" data-price="25" onchange="toggleQuantity(this)">
+          تركيب اكسسوارات دورة مياه او مرآه / بالحبة الواحدة (<span class="service-price">25</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="10" data-price="50" onchange="toggleQuantity(this)">
+          تركيب او تغيير دش الاستحمام (<span class="service-price">50</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="11" data-price="200" onchange="toggleQuantity(this)">
+          تركيب او تغيير دينمو (<span class="service-price">200</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="12" data-price="50" onchange="toggleQuantity(this)">
+          تركيب او تغيير صفاية أرضية (<span class="service-price">50</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="13" data-price="70" onchange="toggleQuantity(this)">
+          تركيب او تغيير عوامة خزان (<span class="service-price">70</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="25" data-price="20" onchange="toggleQuantity(this)">
+          تركيب سماعة دش (<span class="service-price">20</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="26" data-price="80" onchange="toggleQuantity(this)">
+          تركيب سيفون عربي (<span class="service-price">80</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="30" data-price="200" onchange="toggleQuantity(this)">
+          تركيب فلتر مياه (<span class="service-price">200</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="31" data-price="300" onchange="toggleQuantity(this)">
+          تركيب كابينة استحمام شاور ( حواجز ) (<span class="service-price">300</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="32" data-price="150" onchange="toggleQuantity(this)">
+          تركيب كرسي افرنجي (<span class="service-price">150</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="33" data-price="100" onchange="toggleQuantity(this)">
+          ازالة كرسي افرنجي (<span class="service-price">100</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="35" data-price="150" onchange="toggleQuantity(this)">
+          تركيب مغسلة (<span class="service-price">150</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="37" data-price="200" onchange="toggleQuantity(this)">
+          تغيير او تركيب مغسلة دولاب (<span class="service-price">200</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="38" data-price="200" onchange="toggleQuantity(this)">
+          تركيب طقم شور (<span class="service-price">200</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="39" data-price="300" onchange="toggleQuantity(this)">
+          تسليك انسداد التصريف (<span class="service-price">300</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="40" data-price="80" onchange="toggleQuantity(this)">
+          تسليك انسداد حوض المطبخ (<span class="service-price">80</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="43" data-price="50" onchange="toggleQuantity(this)">
+          تغيير او تركيب خلاط (<span class="service-price">50</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="44" data-price="50" onchange="toggleQuantity(this)">
+          تغيير او تركيب رداد سخان (<span class="service-price">50</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="45" data-price="30" onchange="toggleQuantity(this)">
+          تغيير او تركيب شطاف (<span class="service-price">30</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="46" data-price="40" onchange="toggleQuantity(this)">
+          تغيير او تركيب قفل الأبواب (<span class="service-price">40</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="47" data-price="40" onchange="toggleQuantity(this)">
+          تغيير او تركيب مقبض الأبواب (<span class="service-price">40</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="50" data-price="44" onchange="toggleQuantity(this)">
+          تغيير غطاء كرسي افرنجي (<span class="service-price">44</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="53" data-price="25" onchange="toggleQuantity(this)">
+          تغيير محبس زاوية (<span class="service-price">25</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="54" data-price="50" onchange="toggleQuantity(this)">
+          تغيير محبس زاوية مع لي (<span class="service-price">50</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="56" data-price="35" onchange="toggleQuantity(this)">
+          تغيير هراب مغسلة (<span class="service-price">35</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="57" data-price="80" onchange="toggleQuantity(this)">
+          تغييرعوامة الخزان (<span class="service-price">80</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="63" data-price="150" onchange="toggleQuantity(this)">
+          تمديد تصريف الغسالة (<span class="service-price">150</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="66" data-price="180" onchange="toggleQuantity(this)">
+          تنظيف خزانات (<span class="service-price">180</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      <div class="service-item">
+        <label>
+          <input type="checkbox" data-id="70" data-price="250" onchange="toggleQuantity(this)">
+          فك وتركيب كرسي عربي (<span class="service-price">250</span> SAR)
+        </label>
+        <input type="number" class="qty-input" placeholder="الكمية" min="1" value="1"
+               style="display:none; margin-right: 10px;">
+      </div>
+      
+          
+              <!-- </div> -->
+              <script>
+                function toggleQuantity(checkbox) {
+          const container = checkbox.closest('.service-item');
+          const qtyInput = container.querySelector('.qty-input');
+        
+          if (checkbox.checked) {
+            qtyInput.style.display = 'inline-block';
+            qtyInput.required = true;
+          } else {
+            qtyInput.style.display = 'none';
+            qtyInput.required = false;
+            qtyInput.value = 1;
+          }
+        
+          updateServicePrice(container);
+          calculateTotalPrice();
+        }
+        function updateServicePrice(container) {
+          const checkbox = container.querySelector('input[type="checkbox"]');
+          const priceSpan = container.querySelector('.service-price');
+          const qty = parseInt(container.querySelector('.qty-input')?.value || 1);
+          const basePrice = parseFloat(checkbox.dataset.price);
+        
+          const total = checkbox.checked ? basePrice * qty : basePrice;
+          priceSpan.textContent = total.toFixed(2);
+        }
+        document.addEventListener("input", function (event) {
+          if (event.target.classList.contains("qty-input")) {
+            const container = event.target.closest(".service-item");
+            updateServicePrice(container);
+            calculateTotalPrice();
+          }
+        });
+        
+                </script>

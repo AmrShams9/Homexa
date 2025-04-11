@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://maps.googleapis.com; frame-src https://www.google.com; img-src 'self' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://maps.googleapis.com; style-src 'self';">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self' https://maps.googleapis.com; frame-src https://www.google.com; img-src 'self' https://maps.googleapis.com https://maps.gstatic.com; connect-src 'self' https://maps.googleapis.com; style-src 'self';">  -->
+    <title>لوحه المستخدم</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcbG4Bb4SRpgeVxp-imrm4X3CyS_e2deE&libraries=places"></script>
+    <script src="scripts.js"></script>
+</head>
+<body>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* App Bar */
+        .appbar {
+    position: relative;
+    width: 100%;
+    background-color: #34507c;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+        .appbar img {
+            height: 50px;
+            margin-right: 25px;
+        }
+
+        .logout-btn {
+    background-color: #f15a29;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    position: relative; /* ليس absolute حتى يتناسب مع .appbar */
+    width: auto; /* يمنع توسع الزر */
+    height: auto; /* يمنع توسع الزر */
+    margin-left: 25px;
+}
+
+        .logout-btn:hover {
+            background-color: #d04a20;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: right;
+        }
+
+        .logo {
+            width: 170px;
+            display: block;
+            margin: 10px auto;
+        }
+
+        input, select, button {
+            /* width: 100%; */
+            padding: 10px;
+            margin: 12px 0;
+            /* margin-left: 10px; */
+            /* margin-right: 10px; */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #f15a29;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .location-input {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    /* direction: ltr; يجعل الزر فعليًا في أقصى اليسار */
+}
+
+        .location-input input {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .location-input button {
+    background: #f15a29;
+    color: white;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    position: absolute;
+    left: 5px; /* نقل الزر إلى أقصى اليسار */
+    right: auto; /* إزالة القيم الافتراضية */
+    top: 35%;
+    transform: translateY(-50%);
+    border-radius: 5px;
+    width: 35px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+        .location-input button:hover {
+            background: #d04a20;
+        }
+        #orderForm{
+            display: flex;
+            flex: 1;
+            /* width: 95%; */
+            justify-content: center;
+            align-items:stretch ;
+            flex-direction: column;
+            margin: auto 0;
+        }
+        input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.input-group input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+}
+
+.input-group button {
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.input-group button:hover {
+    background-color: #e9ecef;
+
+}
+#map {
+                height: 300px;
+                width: 500px;
+            margin: 15px auto;}
+            .map-search {
+            margin-top: 10px;
+        }
+    </style>
+     <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f9f9f9; text-align: right; direction: rtl; padding: 20px; }
+        .container { max-width: 700px; margin: auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h3 { margin-bottom: 10px; cursor: pointer; user-select: none; }
+        label { display: block; margin-bottom: 5px; }
+        input[type="checkbox"] { margin-left: 10px; }
+        input[type="submit"] { margin-top: 20px; padding: 10px 20px; background-color: #f15a29; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #totalPrice { font-size: 1.2em; color: #f15a29; }
+    </style>
+</head>
+<body>
+
+    <!-- App Bar -->
+    <div class="appbar">
+        <img src="/HomeexaBlueWhite.png" alt="HomeexaLogo">
+        <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
+    </div>
+
+    <div class="container">
+        
+        <img src="/HomeexaBlueWhite.png" alt="HomeexaLogo" class="logo">
+        <h2>إضافة طلب جديد</h2>
+        
+        <form id="orderForm">
+            <div class="input-group">
+                <input type="tel" name="customerPhone" id="customerPhone"
+                placeholder="رقم العميل"
+                pattern="05[0-9]{8}"
+                maxlength="10"
+                minlength="10"
+                required
+                title="يجب أن يبدأ الرقم بـ 05 ويحتوي على 10 أرقام">
+            <button type="button" onclick="searchOrderByPhone()">🔍</button>
+        </div>
+
+            <input type="text" name="customerName" id="customerName" placeholder="اسم العميل" required>
+            
+            <!-- <div class="container"> -->
+                <div class="location-input">
+                    <input type="text" name="customerLocation" id="customerLocation" placeholder="اضغط لتحديد موقعك" readonly>
+                </div>
+            
+                <input type="hidden" name="customerLat" id="customerLat">
+                <input type="hidden" name="customerLng" id="customerLng">
+            
+                <input id="map-search" class="map-search" type="text" placeholder="ابحث عن الموقع">
+                <div id="map"></div>
+                <input type="date" name="serviceDate" id="serviceDate" required>
+            
+
+                <h2>اختر الخدمات المطلوبة:</h2>
+
+                <%- include('partials/services-selection') %>
+
+             
+
+
+           
+
+            <select name="serviceTime" id="serviceTime" required>
+                <option value="">اختر وقت الخدمة</option>
+                <option value="9-12 ص">9:00 - 12:00 صباحًا</option>
+                <option value="1-5 م">1:00 - 5:00 مساءً</option>
+                <option value="6-9 م">6:00 - 9:00 مساءً</option>
+            </select>
+
+            <select name="paymentMethod" id="paymentMethod" required>
+                <option value="">اختر طريقة الدفع</option>
+                <option value="دفع لدى المعرض">دفع لدى المعرض</option>
+                <option value="الدفع عند التركيب">الدفع عند التركيب</option>
+            </select>
+            <h4>الإجمالي بدون ضريبة: <span id="baseTotal">0</span> SAR</h4>
+    <h4>ضريبة القيمة المضافة (15%): <span id="vatAmount">0</span> SAR</h4>
+   <h4><strong>الإجمالي الكلي: <span id="totalPrice">0</span> SAR</strong></h4>
+
+
+            <button type="submit">إضافة الطلب</button>
+        </form>
+    </div>
+
+    
+    <script>
+    document.getElementById("orderForm").addEventListener("submit", async function(event) {
+  event.preventDefault();
+
+  const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                                .map(service => service.dataset.id);
+
+  const totalPrice = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                          .reduce((sum, service) => sum + parseFloat(service.dataset.price), 0);
+
+  const orderData = {
+    customerPhone: document.getElementById("customerPhone").value,
+    customerName: document.getElementById("customerName").value,
+    customerLat: parseFloat(document.getElementById("customerLat").value),
+    customerLng: parseFloat(document.getElementById("customerLng").value),
+    serviceDate: document.getElementById("serviceDate").value, // ✅ added this
+    serviceTime: document.getElementById("serviceTime").value,
+    paymentMethod: document.getElementById("paymentMethod").value,
+    totalPrice: parseFloat(document.getElementById("totalPrice").innerText),
+    services: selectedServices // ✅ only one definition
+  };
+
+  try {
+    const response = await fetch("/addtask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderData),
+    });
+
+    const result = await response.json();
+    if (response.ok && result.success) {
+      alert("تم إرسال الطلب بنجاح!");
+      document.getElementById("orderForm").reset();
+      document.getElementById("totalPrice").innerText = "0";
+    } else {
+      alert("حدث خطأ: " + (result.error || result.message));
+    }
+  } catch (error) {
+    console.error("Error submitting order:", error);
+    alert("حدث خطأ أثناء إرسال الطلب.");
+  }
+});
+
+    
+    
+    </script>
+    
+
+
+<script>
+    let map, marker, geocoder, searchBox;
+
+    function initMap() {
+        const initialPosition = { lat: 24.7136, lng: 46.6753 };
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: initialPosition,
+            zoom: 10
+        });
+
+        geocoder = new google.maps.Geocoder();
+
+        map.addListener('click', function(event) {
+            placeMarker(event.latLng);
+        });
+
+        const input = document.getElementById('map-search');
+        searchBox = new google.maps.places.SearchBox(input);
+
+        map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+        map.addListener('bounds_changed', function() {
+            searchBox.setBounds(map.getBounds());
+        });
+
+        searchBox.addListener('places_changed', function() {
+            const places = searchBox.getPlaces();
+
+            if (places.length === 0) return;
+
+            const place = places[0];
+            if (!place.geometry) return;
+
+            if (marker) marker.setMap(null);
+
+            map.panTo(place.geometry.location);
+            placeMarker(place.geometry.location);
+        });
+    }
+
+    let selectedLocation = { lat: null, lng: null };
+
+function placeMarker(location) {
+    if (marker) marker.setMap(null);
+
+    marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        draggable: true
+    });
+
+    selectedLocation.lat = location.lat();
+    selectedLocation.lng = location.lng();
+
+    // Set hidden fields
+    document.getElementById('customerLat').value = selectedLocation.lat;
+    document.getElementById('customerLng').value = selectedLocation.lng;
+
+    geocoder.geocode({ 'location': location }, function(results, status) {
+        if (status === 'OK' && results[0]) {
+            document.getElementById('customerLocation').value = results[0].formatted_address;
+        } else {
+            document.getElementById('customerLocation').value = `Lat: ${location.lat()}, Lng: ${location.lng()}`;
+        }
+    });
+
+    marker.addListener('dragend', function() {
+        selectedLocation.lat = marker.getPosition().lat();
+        selectedLocation.lng = marker.getPosition().lng();
+
+        document.getElementById('customerLat').value = selectedLocation.lat;
+        document.getElementById('customerLng').value = selectedLocation.lng;
+
+        geocoder.geocode({ 'location': marker.getPosition() }, function(results, status) {
+            if (status === 'OK' && results[0]) {
+                document.getElementById('customerLocation').value = results[0].formatted_address;
+            } else {
+                document.getElementById('customerLocation').value = `Lat: ${selectedLocation.lat}, Lng: ${selectedLocation.lng}`;
+            }
+        });
+    });
+}
+
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                const userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                map.setCenter(userLocation);
+                placeMarker(userLocation);
+            }, function() {
+                alert("تعذر تحديد الموقع الحالي");
+            });
+        } else {
+            alert("متصفحك لا يدعم خدمة تحديد الموقع");
+        }
+    }
+
+    window.onload = initMap;
+</script>
+<script>
+    function toggleVisibility(sectionId) {
+        const section = document.getElementById(sectionId);
+        section.style.display = section.style.display === "none" ? "block" : "none";
+    }
+
+    
+document.getElementById("orderForm").addEventListener("change", function() {
+    let baseTotal = 0;
+
+    document.querySelectorAll('input[type="checkbox"]:checked').forEach(service => {
+        const container = service.closest(".service-item");
+        const qtyInput = container.querySelector(".qty-input");
+        const quantity = parseInt(qtyInput?.value || 1);
+        const price = parseFloat(service.dataset.price);
+        baseTotal += price * quantity;
+    });
+
+    const vat = baseTotal * 0.15;
+    const grandTotal = baseTotal + vat;
+
+    document.getElementById('baseTotal').innerText = baseTotal.toFixed(2);
+    document.getElementById('vatAmount').innerText = vat.toFixed(2);
+    document.getElementById('totalPrice').innerText = grandTotal.toFixed(2);
+});
+document.addEventListener("input", function (event) {
+  if (event.target.classList.contains("qty-input")) {
+    document.getElementById("orderForm").dispatchEvent(new Event('change'));
+  }
+});
+
+async function logout() {
+    await fetch('/logout', { method: 'POST' }); // Endpoint لتسجيل الخروج
+    window.location.href = '/'; // ثم إعادة التوجيه
+}
+</script>
+
+
+    
+
+
+
+
+    
+</body>
+</html>

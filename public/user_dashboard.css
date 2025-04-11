@@ -1,0 +1,195 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    text-align: center;
+    direction: rtl;
+    margin: 0;
+    padding: 0;
+}
+
+/* App Bar */
+.appbar {
+    position: relative;
+    width: 100%;
+    background-color: #34507c;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.appbar img {
+    height: 50px;
+    margin-right: 25px;
+}
+
+.logout-btn {
+    background-color: #f15a29;
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    position: relative;
+    width: auto;
+    height: auto;
+    margin-left: 25px;
+}
+
+.logout-btn:hover {
+    background-color: #d04a20;
+}
+
+.container {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: right;
+}
+
+.logo {
+    width: 170px;
+    display: block;
+    margin: 10px auto;
+}
+
+input, select, button {
+    padding: 10px;
+    margin: 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #f15a29;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.location-input {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+}
+
+.location-input input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+.location-input button {
+    background: #f15a29;
+    color: white;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    position: absolute;
+    left: 5px;
+    right: auto;
+    top: 35%;
+    transform: translateY(-50%);
+    border-radius: 5px;
+    width: 35px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.location-input button:hover {
+    background: #d04a20;
+}
+
+#orderForm {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: stretch;
+    flex-direction: column;
+    margin: auto 0;
+}
+
+.input-group {
+    display: flex;
+    align-items: stretch;
+}
+
+.input-group input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+}
+
+.input-group button {
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.input-group button:hover {
+    background-color: #e9ecef;
+}
+
+/* Maps Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 800px;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+#map {
+    height: 400px;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.map-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.map-actions button {
+    width: 48%;
+}
+input::placeholder {
+    text-align: right;
+    direction: rtl;
+  }
