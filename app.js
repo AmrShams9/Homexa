@@ -812,6 +812,49 @@ app.get('/search-order/:phone', (req, res) => {
         res.json(order);
     });
 });
+/////////////////////////////////////////////////
+app.get("/search-tasks", (req, res) => {
+  const { name = '', status = '' } = req.query;
+  const baseQuery = `SELECT * FROM tasks WHERE 1=1`;
+  const conditions = [];
+  const params = [];
+
+  if (name) {
+    conditions.push("customerName LIKE ?");
+    params.push(`%${name}%`);
+  }
+  if (status) {
+    conditions.push("status = ?");
+    params.push(status);
+  }
+
+  const query = [baseQuery, ...conditions.map(c => `AND ${c}`)].join(" ");
+
+  db.all(query, params, (err, tasks) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!tasks.length) return res.json([]);
+
+    const taskIds = tasks.map(t => t.id);
+    const placeholders = taskIds.map(() => '?').join(',');
+    const serviceQuery = `SELECT ts.task_id, s.name FROM task_services ts JOIN services s ON ts.service_id = s.id WHERE ts.task_id IN (${placeholders})`;
+
+    db.all(serviceQuery, taskIds, (err, serviceRows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      const servicesMap = {};
+      serviceRows.forEach(r => {
+        if (!servicesMap[r.task_id]) servicesMap[r.task_id] = [];
+        servicesMap[r.task_id].push(r.name);
+      });
+      const enriched = tasks.map(task => ({
+        ...task,
+        customerLocation: `https://www.google.com/maps?q=${task.customerLat},${task.customerLng}`,
+        services: servicesMap[task.id] || []
+      }));
+      res.json(enriched);
+    });
+  });
+});
+
 
 
 
