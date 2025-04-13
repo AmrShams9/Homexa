@@ -20,6 +20,7 @@
             <button onclick="showPage('addUser')">➕ إضافة مستخدم</button>
             <button onclick="showPage('viewUsers')">👥 عرض المستخدمين</button>
             <button onclick="showPage('charts')">📊 الإحصائيات</button>
+            <button onclick="window.location.href='/manage-timeslots'">⏰ إدارة المواعيد</button>
         </div>
 
         <div id="orders" class="content active">
@@ -57,12 +58,15 @@
     
                
     
-                <select name="serviceTime" id="serviceTime" required>
-                    <option value="">اختر وقت الخدمة</option>
-                    <option value="9-12 ص">9:00 - 12:00 صباحًا</option>
-                    <option value="1-5 م">1:00 - 5:00 مساءً</option>
-                    <option value="6-9 م">6:00 - 9:00 مساءً</option>
-                </select>
+                    <select name="serviceTime" id="serviceTime" required>
+                        <option value="">اختر وقت الخدمة</option>
+                        <% timeSlots.forEach(slot => { %>
+                          <option value="<%= slot.label %>">
+                            <%= slot.label %> (من <%= slot.start %> إلى <%= slot.end %>)
+                          </option>
+                        <% }) %>
+                      </select>
+                      
     
                 <select name="paymentMethod" id="paymentMethod" required>
                     <option value="">اختر طريقة الدفع</option>
@@ -152,9 +156,9 @@
     }
     
     // تحميل البيانات عند اختيار صفحة الإحصائيات
-    if (pageId === "charts") {
-        fetchTasksAndRenderChart();
-    }
+    // if (pageId === "charts") {
+    //     fetchTasksAndRenderChart();
+    //}
 }
 
 

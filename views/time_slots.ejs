@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>إدارة الفترات الزمنية</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f9f9f9;
+      padding: 30px;
+      direction: rtl;
+      text-align: right;
+    }
+
+    h3 {
+      color: #34507c;
+      margin-bottom: 20px;
+    }
+
+    form {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 700px;
+      margin: 30px auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .slot-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    input[type="text"], input[type="time"] {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      min-width: 100px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #f15a29;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #d34714;
+    }
+
+    hr {
+      margin: 30px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h3>➕ إضافة فترة زمنية جديدة</h3>
+
+  <form action="/add-timeslot" method="POST">
+    <div class="slot-row">
+      <input type="text" name="label" placeholder="مثلاً: 9-12 ص" required>
+      من: <input type="time" name="start" required>
+      إلى: <input type="time" name="end" required>
+    </div>
+    <button type="submit">➕ إضافة</button>
+  </form>
+
+  <hr>
+
+  <h3>✏️ تعديل الفترات الزمنية الموجودة</h3>
+
+  <form action="/update-timeslots" method="POST">
+    <% slots.forEach(slot => { %>
+      <div class="slot-row">
+        <input type="hidden" name="ids" value="<%= slot.id %>">
+        <input type="text" name="labels" value="<%= slot.label %>" required>
+        من: <input type="time" name="starts" value="<%= slot.start %>" required>
+        إلى: <input type="time" name="ends" value="<%= slot.end %>" required>
+      </div>
+    <% }) %>
+    <button type="submit">💾 حفظ التعديلات</button>
+  </form>
+
+</body>
+</html>

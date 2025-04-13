@@ -4,20 +4,21 @@
   <meta charset="utf-8">
   <title>Gantt Chart Full Page</title>
   <style>
-.chartWrapper {
-    width: 100%;
-    height: 400px; /* ⬅️ Adjust this height as needed */
-    margin: auto;
-    padding: 10px;
-  }
+    .chartWrapper {
+      width: 100%;
+      height: 400px;
+      margin: auto;
+      padding: 10px;
+    }
 
     html, body {
       margin: 0;
       padding: 0;
-      height: 50%;
+      height: 100%;
       font-family: sans-serif;
       background-color: #f5faff;
     }
+
     .chartMenu {
       height: 40px;
       background: #1A1A1A;
@@ -27,210 +28,230 @@
       padding-left: 10px;
       font-size: 18px;
     }
+
     #myChart {
       width: 100%;
-      /* height: calc(100vh - 40px); */
       height: 100%;
+    }
+
+    .filter-controls {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      align-items: center;
+    }
+
+    .filter-controls input,
+    .filter-controls select,
+    .filter-controls button {
+      padding: 5px;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <div class="chartMenu">
-    Gantt Chart  (<span id="chartVersion"></span>)
-  </div>
-  <div style=" gap: 10px; padding: 10px;">
-    <input type="text" id="supplierFilter" placeholder="بحث باسم العميل" style="padding: 5px; flex: 1;">
-    <select id="statusFilter" style="padding: 5px;">
-      <option value="">كل الحالات</option>
-      <option value="InProgress">InProgress</option>
-<option value="On Hold">On Hold</option>
-<option value="completed">completed</option>
-<option value="canceled">canceled</option>
-<option value="Assigned">Assigned</option>
-<option value="New">New</option>
 
-    </select>
-    
-    <button onclick="loadTasks()" style="padding: 5px 10px;">🔍 تصفية</button>
-  </div>
-  
-  
-  <div class="chartWrapper">
+<div class="chartMenu">
+  Gantt Chart (<span id="chartVersion"></span>)
+</div>
+
+<div class="filter-controls">
+  <input type="text" id="supplierFilter" placeholder="بحث باسم العميل" />
+  <select id="statusFilter">
+    <option value="">كل الحالات</option>
+    <option value="InProgress">InProgress</option>
+    <option value="On Hold">On Hold</option>
+    <option value="completed">completed</option>
+    <option value="canceled">canceled</option>
+    <option value="Assigned">Assigned</option>
+    <option value="New">New</option>
+  </select>
+  <button onclick="loadTasks()">🔍 تصفية</button>
+  <button onclick="chart.resetZoom()">🔄 Reset Zoom</button>
+</div>
+
+<div class="chartWrapper">
   <canvas id="myChart"></canvas>
 </div>
 
-  <!-- Chart.js & Plugins -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/luxon"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+<!-- Chart.js and Plugins -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
 
-  <script>
-    const today = luxon.DateTime.now().toISODate();
+<script>
+  const today = luxon.DateTime.now().toISODate();
 
-    const statusColors = {
-      'New': '#aaa',
-      'Assigned': '#3498db',
-      'In Progress': '#27ae60',
-      'On Hold': '#e67e22',
-      'completed': '#2ecc71',
-      'canceled': '#e74c3c'
-    };
+  const statusColors = {
+    'New': '#aaa',
+    'Assigned': '#3498db',
+    'In Progress': '#27ae60',
+    'On Hold': '#e67e22',
+    'completed': '#2ecc71',
+    'canceled': '#e74c3c'
+  };
 
-    const timeBlocks = {
-      "9-12 ص": { start: "09:00", end: "12:00" },
-      "1-5 م": { start: "13:00", end: "17:00" },
-      "6-9 م": { start: "18:00", end: "21:00" }
-    };
+  let timeBlocks = {};
 
-    const config = {
-      type: 'bar',
-      data: {
-        labels: [],
-        datasets: [{
-          label: 'Tasks',
-          data: [],
-          backgroundColor: [],
-          borderColor: [],
-          borderWidth: 1,
-          borderRadius: 5
-        }]
-      },
-      options: {
-        maintainAspectRatio: false,
-        indexAxis: 'y',
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: ctx => {
-                const task = ctx.raw;
-                return [
-                  `📅 ${task.x[0]} → ${task.x[1]}`,
-                  `💼 الخدمات: ${task.services?.join(', ') || 'لا توجد'}`,
-                  `💰 السعر: ${task.price || 0} SAR`,
-                  `📌 الحالة: ${task.status}`,
-                  `🖱️ اضغط لفتح صفحة التعديل`
-                ];
-              }
-            }
-          },
-          annotation: {
-            annotations: {
-              todayLine: {
-                type: 'line',
-                borderColor: 'red',
-                borderWidth: 2,
-                label: {
-                  content: 'Today',
-                  enabled: true,
-                  position: 'start',
-                  color: 'red'
-                },
-                scaleID: 'x',
-                value: today
-              }
+  const config = {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Tasks',
+        data: [],
+        backgroundColor: [],
+        borderColor: [],
+        borderWidth: 1,
+        borderRadius: 5
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const task = ctx.raw;
+              return [
+                `📅 ${task.x[0]} → ${task.x[1]}`,
+                `💼 الخدمات: ${task.services?.join(', ') || 'لا توجد'}`,
+                `💰 السعر: ${task.price || 0} SAR`,
+                `📌 الحالة: ${task.status}`,
+                `🖱️ اضغط لفتح صفحة التعديل`
+              ];
             }
           }
         },
-        scales: {
-          x: {
-            type: 'time',
-            time: {
-              unit: 'day',
-              tooltipFormat: 'yyyy-MM-dd',
-            },
-            title: {
-              display: true,
-              text: 'التاريخ'
-            },
-            min: '2025-03-27',
-            max: '2025-04-15'
-          },
-          y: {
-            title: {
-              display: true,
-              text: 'المهام'
+        annotation: {
+          annotations: {
+            todayLine: {
+              type: 'line',
+              borderColor: 'red',
+              borderWidth: 2,
+              label: {
+                content: 'Today',
+                enabled: true,
+                position: 'start',
+                color: 'red'
+              },
+              scaleID: 'x',
+              value: today
             }
+          }
+        },
+        zoom: {
+          pan: {
+            enabled: true,
+            mode: 'x'
+          },
+          zoom: {
+            wheel: { enabled: true },
+            pinch: { enabled: true },
+            mode: 'x'
           }
         }
       },
-      plugins: [Chart.registry.getPlugin('annotation')]
-    };
-
-    const chart = new Chart(document.getElementById('myChart'), config);
-    document.getElementById('chartVersion').innerText = Chart.version;
-
-    async function loadTasks() {
-  const supplier = document.getElementById("supplierFilter").value.trim();
-  const status = document.getElementById("statusFilter").value;
-
-  try {
-    const query = new URLSearchParams({ supplier, status }).toString();
-    const response = await fetch(`/gettasks?${query}`);
-    const tasks = await response.json();
-     // تابع عرض البيانات بالرسم أو الجدول حسب المشروع
-     console.log(tasks);
-    renderOrders(tasks); // أو updateChart(tasks) حسب اللي بتستخدمه
-
-    const labels = [], bars = [], bgColors = [], borderColors = [];
-
-    tasks.forEach(task => {
-      const {
-        customerName,
-        id,
-        serviceDate,
-        serviceTime,
-        status,
-        services,
-        totalPrice
-      } = task;
-
-      const time = timeBlocks[serviceTime];
-      if (!serviceDate || !time) return;
-
-      const start = `${serviceDate}T${time.start}`;
-      const end = `${serviceDate}T${time.end}`;
-      const label = `${customerName} (#${id})`;
-
-      labels.push(label);
-      bars.push({
-        x: [start, end],
-        y: label,
-        services: services || [],
-        price: totalPrice,
-        status,
-        custom: { id }
-      });
-
-      const color = statusColors[status] || '#888';
-      bgColors.push(color + '80');
-      borderColors.push(color);
-    });
-
-    chart.data.labels = labels;
-    chart.data.datasets[0].data = bars;
-    chart.data.datasets[0].backgroundColor = bgColors;
-    chart.data.datasets[0].borderColor = borderColors;
-    chart.update();
-  } catch (err) {
-    console.error("Failed to fetch tasks:", err);
-  }
-}
-
-    loadTasks();
-
-    document.getElementById('myChart').onclick = function(evt) {
-      const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
-      if (points.length) {
-        const taskData = chart.data.datasets[0].data[points[0].index];
-        const taskId = taskData.custom?.id;
-        if (taskId) {
-          window.location.href = `/edit_task/${taskId}`;
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'day',
+            tooltipFormat: 'yyyy-MM-dd'
+          },
+          title: {
+            display: true,
+            text: 'التاريخ'
+          },
+          min: '2025-03-27',
+          max: '2025-04-15'
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'المهام'
+          },
+          ticks: {
+        font: {
+          size: 14
+        }
+      }, barThickness: 30,               // حجم كل شريط
+      categoryPercentage: 1.0,        // شغل العرض الكامل
+      barPercentage: 5.0              // عرض كامل للنطاق
         }
       }
-    };
-  </script>
+    },
+    plugins: [Chart.registry.getPlugin('annotation')]
+  };
+
+  const chart = new Chart(document.getElementById('myChart'), config);
+  document.getElementById('chartVersion').innerText = Chart.version;
+
+  async function loadTasks() {
+    const supplier = document.getElementById("supplierFilter").value.trim();
+    const status = document.getElementById("statusFilter").value;
+
+    try {
+      timeBlocks = await fetch('/api/timeblocks').then(res => res.json());
+
+      const query = new URLSearchParams({ supplier, status }).toString();
+      const response = await fetch(`/gettasks?${query}`);
+      const tasks = await response.json();
+
+      const labels = [], bars = [], bgColors = [], borderColors = [];
+
+      tasks.forEach(task => {
+        const time = timeBlocks[task.serviceTime];
+        if (!task.serviceDate || !time) return;
+
+        const start = `${task.serviceDate}T${time.start}`;
+        const end = `${task.serviceDate}T${time.end}`;
+        const label = `${task.customerName} (#${task.id})`;
+
+        labels.push(label);
+        bars.push({
+          x: [start, end],
+          y: label,
+          services: task.services || [],
+          price: task.totalPrice,
+          status: task.status,
+          custom: { id: task.id }
+        });
+
+        const color = statusColors[task.status] || '#888';
+        bgColors.push(color + '80');
+        borderColors.push(color);
+      });
+
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = bars;
+      chart.data.datasets[0].backgroundColor = bgColors;
+      chart.data.datasets[0].borderColor = borderColors;
+      chart.update();
+
+    } catch (err) {
+      console.error("Failed to fetch tasks:", err);
+    }
+  }
+
+  loadTasks();
+
+  document.getElementById('myChart').onclick = function(evt) {
+    const points = chart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+    if (points.length) {
+      const taskData = chart.data.datasets[0].data[points[0].index];
+      const taskId = taskData.custom?.id;
+      if (taskId) {
+        window.location.href = `/edit_task/${taskId}`;
+      }
+    }
+  };
+</script>
+
 </body>
 </html>

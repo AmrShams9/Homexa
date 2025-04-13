@@ -89,14 +89,7 @@ db.run(`
 )
 `);
 ///////////////////////////////////////////
-db.run("INSERT OR IGNORE INTO time_slots (label, start, end) VALUES (?, ?, ?)", 
-  ['9-12 ص', '09:00', '12:00']);
 
-db.run("INSERT OR IGNORE INTO time_slots (label, start, end) VALUES (?, ?, ?)", 
-  ['1-5 م', '13:00', '17:00']);
-
-db.run("INSERT OR IGNORE INTO time_slots (label, start, end) VALUES (?, ?, ?)", 
-  ['6-9 م', '18:00', '21:00']);
 ////////////////////////////////////////////////////////////////////////////////////////
 
 // إضافة مستخدمين افتراضيين إذا لم يكونوا موجودين
@@ -199,11 +192,39 @@ app.get("/", (req, res) => {
 // app.get("/login", (req, res) => {
 //     res.render("login_page");
 // });
-// app.get("/test", (req, res) => {
-//     res.render("test");
-// });
 // app.get("/test2", (req, res) => {
-//     res.render("test2");
+//   db.all("SELECT * FROM time_slots ORDER BY id", (err, rows) => {
+//     if (err) {
+//       return res.status(500).send("فشل في جلب الفترات الزمنية");
+//     }
+
+//     res.render("test2", { slots: rows });
+//   });
+// });
+
+// app.get("/test2", (req, res) => {
+//   const user = req.session?.user;
+//   if (!user) return res.redirect("/");
+
+//   const userId = user.id;
+
+//   db.all(`
+//     SELECT t.*, GROUP_CONCAT(s.name, ', ') AS serviceNames
+//     FROM tasks t
+//     LEFT JOIN task_services ts ON t.id = ts.task_id
+//     LEFT JOIN services s ON ts.service_id = s.id
+//     WHERE t.createdByUserId = ?
+//     GROUP BY t.id
+//     ORDER BY t.createdAt DESC
+//   `, [userId], (err, tasks) => {
+//     if (err) return res.status(500).send("فشل في تحميل الطلبات");
+
+//     db.all(`SELECT * FROM time_slots ORDER BY id`, (err2, slots) => {
+//       if (err2) return res.status(500).send("فشل في تحميل الفترات الزمنية");
+
+//       res.render("test2", { tasks, timeSlots: slots });
+//     });
+//   });
 // });
 
 // // صفحة تسجيل الدخول
@@ -214,7 +235,7 @@ app.get("/user_dashboard", (req, res) => {
   const user = req.session.user;
   if (!user) return res.redirect("/");
 
-  const query = `
+  const taskQuery = `
     SELECT t.*, GROUP_CONCAT(s.name, ', ') AS serviceNames
     FROM tasks t
     LEFT JOIN task_services ts ON t.id = ts.task_id
@@ -224,14 +245,25 @@ app.get("/user_dashboard", (req, res) => {
     ORDER BY t.createdAt DESC
   `;
 
-  db.all(query, [user.id], (err, tasks) => {
+  const slotsQuery = `SELECT * FROM time_slots ORDER BY start`;
+
+  db.all(taskQuery, [user.id], (err, tasks) => {
     if (err) {
       console.error("Error loading tasks:", err);
       return res.status(500).send("حدث خطأ أثناء تحميل الطلبات");
     }
-    res.render("user_dashboard", { tasks }); // 👈 مرر الطلبات
+
+    db.all(slotsQuery, [], (err, slots) => {
+      if (err) {
+        console.error("Error loading time slots:", err);
+        return res.status(500).send("حدث خطأ أثناء تحميل الفترات الزمنية");
+      }
+
+      res.render("user_dashboard", { tasks, slots }); // 👈 مرر أيضًا slots
+    });
   });
 });
+
 
 
 // تسجيل الدخول ومعرفة الدور
@@ -283,13 +315,88 @@ app.post("/logout", (req, res) => {
 
 // عرض لوحة تحكم المشرف
 app.get("/admin_dashboard", (req, res) => {
-    db.all("SELECT * FROM users", [], (err, users) => {
-        if (err) {
-            return res.status(500).send("حدث خطأ أثناء جلب المستخدمين.");
-        }
-        res.render("admin_dashboard", { users });
+  db.all("SELECT * FROM users", [], (err, users) => {
+    if (err) return res.status(500).send("حدث خطأ أثناء جلب المستخدمين.");
+
+    db.all("SELECT * FROM time_slots", [], (err, timeSlots) => {
+      if (err) return res.status(500).send("خطأ في الفترات الزمنية");
+      res.render("admin_dashboard", { users, timeSlots });
     });
+  });
 });
+app.post("/update-timeslots", (req, res) => {
+  const { ids, labels, starts, ends } = req.body;
+
+  const allIds = Array.isArray(ids) ? ids : [ids];
+  const allLabels = Array.isArray(labels) ? labels : [labels];
+  const allStarts = Array.isArray(starts) ? starts : [starts];
+  const allEnds = Array.isArray(ends) ? ends : [ends];
+
+  const stmt = db.prepare("UPDATE time_slots SET label = ?, start = ?, end = ? WHERE id = ?");
+
+  allIds.forEach((id, i) => {
+    stmt.run(allLabels[i], allStarts[i], allEnds[i], id);
+  });
+
+  stmt.finalize(() => {
+    res.redirect("/admin_dashboard");
+  });
+});
+
+
+
+
+app.get("/api/timeblocks", (req, res) => {
+  db.all("SELECT * FROM time_slots", (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const blocks = {};
+    rows.forEach(slot => {
+      blocks[slot.label] = {
+        start: slot.start,
+        end: slot.end
+      };
+    });
+
+    res.json(blocks);
+  });
+});
+
+app.get('/manage-timeslots', (req, res) => {
+  db.all("SELECT * FROM time_slots ORDER BY start", (err, rows) => {
+    if (err) {
+      return res.status(500).send("خطأ في تحميل الفترات الزمنية");
+    }
+    res.render("time_slots", { slots: rows });
+  });
+});
+app.get("/api/timeblocks", (req, res) => {
+  db.all("SELECT * FROM time_slots", (err, rows) => {
+    if (err) return res.status(500).json({ error: "خطأ" });
+    const map = {};
+    rows.forEach(r => map[r.label] = { start: r.start, end: r.end });
+    res.json(map);
+  });
+});
+app.get("/time_slots", (req, res) => {
+  db.all("SELECT * FROM time_slots ORDER BY id", (err, slots) => {
+    if (err) return res.status(500).send("فشل في تحميل الفترات");
+    res.render("time_slots", { slots });
+  });
+});
+
+app.post("/add-timeslot", (req, res) => {
+  const { label, start, end } = req.body;
+  db.run("INSERT INTO time_slots (label, start, end) VALUES (?, ?, ?)", [label, start, end], err => {
+    if (err) return res.status(500).send("فشل في الإضافة");
+    res.redirect("/time_slots");
+  });
+});
+
+
+
+
+
 
 
 
