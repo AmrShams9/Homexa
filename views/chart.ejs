@@ -38,6 +38,23 @@
   <div class="chartMenu">
     Gantt Chart  (<span id="chartVersion"></span>)
   </div>
+  <div style=" gap: 10px; padding: 10px;">
+    <input type="text" id="supplierFilter" placeholder="بحث باسم العميل" style="padding: 5px; flex: 1;">
+    <select id="statusFilter" style="padding: 5px;">
+      <option value="">كل الحالات</option>
+      <option value="InProgress">InProgress</option>
+<option value="On Hold">On Hold</option>
+<option value="completed">completed</option>
+<option value="canceled">canceled</option>
+<option value="Assigned">Assigned</option>
+<option value="New">New</option>
+
+    </select>
+    
+    <button onclick="loadTasks()" style="padding: 5px 10px;">🔍 تصفية</button>
+  </div>
+  
+  
   <div class="chartWrapper">
   <canvas id="myChart"></canvas>
 </div>
@@ -146,57 +163,61 @@
     document.getElementById('chartVersion').innerText = Chart.version;
 
     async function loadTasks() {
-      try {
-        const response = await fetch('/gettasks');
-        const tasks = await response.json();
+  const supplier = document.getElementById("supplierFilter").value.trim();
+  const status = document.getElementById("statusFilter").value;
 
-        const labels = [];
-        const bars = [];
-        const bgColors = [];
-        const borderColors = [];
+  try {
+    const query = new URLSearchParams({ supplier, status }).toString();
+    const response = await fetch(`/gettasks?${query}`);
+    const tasks = await response.json();
+     // تابع عرض البيانات بالرسم أو الجدول حسب المشروع
+     console.log(tasks);
+    renderOrders(tasks); // أو updateChart(tasks) حسب اللي بتستخدمه
 
-        tasks.forEach(task => {
-          const {
-            customerName,
-            id,
-            serviceDate,
-            serviceTime,
-            status,
-            services,
-            totalPrice
-          } = task;
+    const labels = [], bars = [], bgColors = [], borderColors = [];
 
-          const time = timeBlocks[serviceTime];
-          if (!serviceDate || !time) return;
+    tasks.forEach(task => {
+      const {
+        customerName,
+        id,
+        serviceDate,
+        serviceTime,
+        status,
+        services,
+        totalPrice
+      } = task;
 
-          const start = `${serviceDate}T${time.start}`;
-          const end = `${serviceDate}T${time.end}`;
-          const label = `${customerName} (#${id})`;
+      const time = timeBlocks[serviceTime];
+      if (!serviceDate || !time) return;
 
-          labels.push(label);
-          bars.push({
-            x: [start, end],
-            y: label,
-            services: services || [],
-            price: totalPrice,
-            status,
-            custom: { id }
-          });
+      const start = `${serviceDate}T${time.start}`;
+      const end = `${serviceDate}T${time.end}`;
+      const label = `${customerName} (#${id})`;
 
-          const color = statusColors[status] || '#888';
-          bgColors.push(color + '80');
-          borderColors.push(color);
-        });
+      labels.push(label);
+      bars.push({
+        x: [start, end],
+        y: label,
+        services: services || [],
+        price: totalPrice,
+        status,
+        custom: { id }
+      });
 
-        chart.data.labels = labels;
-        chart.data.datasets[0].data = bars;
-        chart.data.datasets[0].backgroundColor = bgColors;
-        chart.data.datasets[0].borderColor = borderColors;
-        chart.update();
-      } catch (err) {
-        console.error("Failed to fetch tasks:", err);
-      }
-    }
+      const color = statusColors[status] || '#888';
+      bgColors.push(color + '80');
+      borderColors.push(color);
+    });
+
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = bars;
+    chart.data.datasets[0].backgroundColor = bgColors;
+    chart.data.datasets[0].borderColor = borderColors;
+    chart.update();
+  } catch (err) {
+    console.error("Failed to fetch tasks:", err);
+  }
+}
 
     loadTasks();
 

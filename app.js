@@ -2,6 +2,7 @@ const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const path = require("path");
 const methodOverride = require('method-override');
+const session = require('express-session');
 
 const app = express();
 const db = new sqlite3.Database("database.db");
@@ -19,6 +20,12 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(session({
+  secret: 'secret-key-homeexa-123',  // 🔐 استبدله بسطر عشوائي قوي في الإنتاج
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // true فقط إذا كنت تستخدم HTTPS
+}));
 
 // إنشاء جدول المستخدمين إذا لم يكن موجودًا
 db.run(`
@@ -46,12 +53,13 @@ db.run(`
     serviceDate TEXT NOT NULL, 
     serviceTime TEXT NOT NULL,
     paymentMethod TEXT NOT NULL,
-   status TEXT CHECK(status IN ('InProgress', 'On Hold', 'completed', 'canceled', 'Assigned', 'New')) DEFAULT 'New',
+    status TEXT CHECK(status IN ('InProgress', 'On Hold', 'completed', 'canceled', 'Assigned', 'New')) DEFAULT 'New',
     totalPrice REAL NOT NULL DEFAULT 0,
     createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
    
     )
 `);
+
 
 /////////////////////////////Services Talble///////////////////////////////
 db.run(`
@@ -72,7 +80,24 @@ db.run(`
   FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
          )`);
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      db.run(`
+        CREATE TABLE IF NOT EXISTS time_slots (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  label TEXT NOT NULL,
+  start TEXT NOT NULL,
+  end TEXT NOT NULL
+)
+`);
+///////////////////////////////////////////
+db.run("INSERT OR IGNORE INTO time_slots (label, start, end) VALUES (?, ?, ?)", 
+  ['9-12 ص', '09:00', '12:00']);
 
+db.run("INSERT OR IGNORE INTO time_slots (label, start, end) VALUES (?, ?, ?)", 
+  ['1-5 م', '13:00', '17:00']);
+
+db.run("INSERT OR IGNORE INTO time_slots (label, start, end) VALUES (?, ?, ?)", 
+  ['6-9 م', '18:00', '21:00']);
+////////////////////////////////////////////////////////////////////////////////////////
 
 // إضافة مستخدمين افتراضيين إذا لم يكونوا موجودين
 db.run("INSERT OR IGNORE INTO users (fullName, username, supplier, branch, phone, email, password, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
@@ -174,41 +199,87 @@ app.get("/", (req, res) => {
 // app.get("/login", (req, res) => {
 //     res.render("login_page");
 // });
-app.get("/test", (req, res) => {
-    res.render("test");
-});
-app.get("/test2", (req, res) => {
-    res.render("test2");
-});
+// app.get("/test", (req, res) => {
+//     res.render("test");
+// });
+// app.get("/test2", (req, res) => {
+//     res.render("test2");
+// });
 
 // // صفحة تسجيل الدخول
 // app.get("/login_page", (req, res) => {
 //     res.render("Login_Page");
 // });
 app.get("/user_dashboard", (req, res) => {
-    res.render("user_dashboard");
+  const user = req.session.user;
+  if (!user) return res.redirect("/");
+
+  const query = `
+    SELECT t.*, GROUP_CONCAT(s.name, ', ') AS serviceNames
+    FROM tasks t
+    LEFT JOIN task_services ts ON t.id = ts.task_id
+    LEFT JOIN services s ON ts.service_id = s.id
+    WHERE t.createdByUserId = ?
+    GROUP BY t.id
+    ORDER BY t.createdAt DESC
+  `;
+
+  db.all(query, [user.id], (err, tasks) => {
+    if (err) {
+      console.error("Error loading tasks:", err);
+      return res.status(500).send("حدث خطأ أثناء تحميل الطلبات");
+    }
+    res.render("user_dashboard", { tasks }); // 👈 مرر الطلبات
+  });
 });
+
 
 // تسجيل الدخول ومعرفة الدور
 app.post("/login", (req, res) => {
-    const { username, password } = req.body;
-    
-    db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, user) => {
-        if (err) {
-            console.error("Error fetching user:", err);
-            return res.status(500).send("حدث خطأ أثناء تسجيل الدخول.");
-        }
-        if (!user) {
-            return res.send("Invalid username or password.");
-        }
+  const { username, password } = req.body;
 
-        if (user.role === "admin") {
-            res.render("admin_dashboard", { username: user.fullName, totalEmployees: 50 });
-        } else {
-            res.render("user_dashboard");
-        }
-    });
+  db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, user) => {
+      if (err) {
+          console.error("Error fetching user:", err);
+          return res.status(500).send("حدث خطأ أثناء تسجيل الدخول.");
+      }
+      if (!user) {
+          return res.send("Invalid username or password.");
+      }
+
+      // ✅ حفظ المستخدم في الجلسة
+      req.session.user = {
+          id: user.id,
+          username: user.username,
+          fullName: user.fullName,
+          role: user.role
+      };
+
+      if (user.role === "admin") {
+          res.redirect("/admin_dashboard");
+      } else {
+          res.redirect("/user_dashboard");
+      }
+  });
 });
+app.get("/api/me", (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "غير مصرح" });
+  }
+
+  res.json(req.session.user); // ترجع بيانات الجلسة للمستخدم الحالي
+});
+
+app.post("/logout", (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      return res.status(500).send("حدث خطأ أثناء تسجيل الخروج.");
+    }
+    res.redirect("/");
+  });
+});
+
+
 
 // عرض لوحة تحكم المشرف
 app.get("/admin_dashboard", (req, res) => {
@@ -259,6 +330,7 @@ app.get("/getUsers", (req, res) => {
 // تحديث المستخدم
 app.get("/editUser/:id", (req, res) => {
     const userId = req.params.id;
+    req.session.previousPage = req.headers.referer; // احفظ الرابط السابق
 
     db.get("SELECT * FROM users WHERE id = ?", [userId], (err, user) => {
         if (err) {
@@ -277,13 +349,14 @@ app.get("/editUser/:id", (req, res) => {
             supplier: user.supplier,
             branch: user.branch,
             phone: user.phone,
-            email: user.email
+            email: user.email,
+            
         });
     });
 });
 app.post("/updateUser/:id", (req, res) => {
     const userId = req.params.id;
-
+    
     const { fullName, username, password, supplier, branch, phone, email } = req.body;
 
     let query = "UPDATE users SET fullName = ?, username = ?, supplier = ?, branch = ?, phone = ?, email = ?";
@@ -303,7 +376,9 @@ app.post("/updateUser/:id", (req, res) => {
             return res.status(500).send("حدث خطأ أثناء تحديث المستخدم.");
         }
 
-        res.redirect("/admin_dashboard");
+        const redirectTo = req.session.previousPage || "/admin_dashboard";
+    delete req.session.previousPage; // حذف القيمة بعد الاستخدام
+    res.redirect(redirectTo);
     });
 });
 
@@ -328,69 +403,71 @@ app.delete("/deleteUser/:id", (req, res) => {
     });
 });
 
-
+//////////////////////////////////////////////////////
 // إضافة طلب جديد
 app.post('/addtask', (req, res) => {
-    const {
-      customerPhone,
-      customerName,
-      customerLat,
-      customerLng,
-      serviceDate,      // ✅ New date field
-      serviceTime,
-      paymentMethod,
-      totalPrice,
-      services          // ✅ Array of selected service IDs
-    } = req.body;
-  
-    console.log("Selected service IDs:", services);
-  
-    if (
-      !customerPhone || !customerName || !customerLat || !customerLng ||
-      !serviceDate || !serviceTime || !paymentMethod || !totalPrice
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "جميع الحقول مطلوبة ويجب اختيار خدمة واحدة على الأقل"
-      });
-    }
-  
-    db.run(`
-      INSERT INTO tasks (
-        customerPhone, customerName, customerLat, customerLng,
-        serviceDate, serviceTime, paymentMethod, status,
-        totalPrice, createdAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Assigned', ?, datetime('now'))
-    `,
-    [
-      customerPhone,
-      customerName,
-      customerLat,
-      customerLng,
-      serviceDate,         // ✅ Inserted here
-      serviceTime,
-      paymentMethod,
-      totalPrice
-    ],
-    function (err) {
-      if (err) {
-        console.error("DB Error:", err);
-        return res.status(500).json({ success: false, error: err.message });
-      }
-  
-      const taskId = this.lastID;
-  
-      if (Array.isArray(services) && services.length > 0) {
-        const stmt = db.prepare('INSERT INTO task_services (task_id, service_id) VALUES (?, ?)');
-        services.forEach(serviceId => {
-          stmt.run(taskId, serviceId);
-        });
-        stmt.finalize();
-      }
-  
-      res.json({ success: true, taskId });
+  const {
+    customerPhone,
+    customerName,
+    customerLat,
+    customerLng,
+    serviceDate,
+    serviceTime,
+    paymentMethod,
+    totalPrice,
+    services
+  } = req.body;
+
+  const createdByUserId = req.session?.user?.id || null;
+
+  if (
+    !customerPhone || !customerName || !customerLat || !customerLng ||
+    !serviceDate || !serviceTime || !paymentMethod || !totalPrice
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: "جميع الحقول مطلوبة ويجب اختيار خدمة واحدة على الأقل"
     });
+  }
+
+  const sql = `
+    INSERT INTO tasks (
+      customerPhone, customerName, customerLat, customerLng,
+      serviceDate, serviceTime, paymentMethod, status,
+      totalPrice, createdAt, createdByUserId
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Assigned', ?, datetime('now'), ?)
+  `;
+
+  db.run(sql, [
+    customerPhone,
+    customerName,
+    customerLat,
+    customerLng,
+    serviceDate,
+    serviceTime,
+    paymentMethod,
+    totalPrice,
+    createdByUserId
+  ], function (err) {
+    if (err) {
+      console.error("DB Error:", err);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+
+    const taskId = this.lastID;
+
+    if (Array.isArray(services) && services.length > 0) {
+      const stmt = db.prepare('INSERT INTO task_services (task_id, service_id) VALUES (?, ?)');
+      services.forEach(serviceId => {
+        stmt.run(taskId, serviceId);
+      });
+      stmt.finalize();
+    }
+
+    res.json({ success: true, taskId });
   });
+});
+
   
 
 
@@ -399,77 +476,138 @@ app.post('/addtask', (req, res) => {
 
 // جلب جميع الطلبات
 app.get("/gettasks", (req, res) => {
-    const tasksQuery = "SELECT * FROM tasks";
-  
-    db.all(tasksQuery, [], (err, tasks) => {
+  const { supplier = "", status = "" } = req.query;
+
+  let baseQuery = `SELECT * FROM tasks WHERE 1=1`;
+  const params = [];
+
+  if (supplier) {
+    baseQuery += ` AND customerName LIKE ?`;
+    params.push(`%${supplier}%`);
+  }
+
+  if (status) {
+    baseQuery += ` AND LOWER(status) = LOWER(?)`;
+    params.push(status.toLowerCase());
+  }
+
+  db.all(baseQuery, params, (err, tasks) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        message: "خطأ في جلب الطلبات",
+        error: err.message,
+      });
+    }
+
+    if (!tasks.length) return res.json([]);
+
+    const taskIds = tasks.map(t => t.id);
+    const placeholders = taskIds.map(() => '?').join(',');
+
+    const serviceQuery = `
+      SELECT ts.task_id, s.name 
+      FROM task_services ts 
+      JOIN services s ON ts.service_id = s.id 
+      WHERE ts.task_id IN (${placeholders})
+    `;
+
+    db.all(serviceQuery, taskIds, (err, serviceRows) => {
       if (err) {
         return res.status(500).json({
           success: false,
-          message: "خطأ في جلب الطلبات",
+          message: "خطأ في جلب الخدمات",
           error: err.message,
         });
       }
+
+      const servicesMap = {};
+      serviceRows.forEach(row => {
+        if (!servicesMap[row.task_id]) servicesMap[row.task_id] = [];
+        servicesMap[row.task_id].push(row.name);
+      });
+
+      const enrichedTasks = tasks.map(task => ({
+        ...task,
+        customerLocation: `https://www.google.com/maps?q=${task.customerLat},${task.customerLng}`,
+        services: servicesMap[task.id] || []
+      }));
+
+      res.json(enrichedTasks);
+    });
+  });
+});
+
+
+
+
+
+
+
+  app.get('/user_tasks', (req, res) => {
+    const user = req.session.user;
+    if (!user) return res.status(401).send("غير مصرح");
   
-      const taskIds = tasks.map((t) => t.id);
-      if (taskIds.length === 0) return res.json([]);
+    const query = `SELECT * FROM tasks WHERE createdByUserId = ? ORDER BY createdAt DESC`;
   
-      const placeholders = taskIds.map(() => "?").join(",");
-      const serviceQuery = `
-        SELECT ts.task_id, s.name 
-        FROM task_services ts 
-        JOIN services s ON ts.service_id = s.id 
-        WHERE ts.task_id IN (${placeholders})
-      `;
+    db.all(query, [user.id], (err, tasks) => {
+      if (err) return res.status(500).send("خطأ في قاعدة البيانات");
+  
+      if (!tasks.length) return res.render("user_tasks", { tasks: [] });
+  
+      const taskIds = tasks.map(t => t.id);
+      const placeholders = taskIds.map(() => '?').join(',');
+      const serviceQuery = `SELECT ts.task_id, s.name FROM task_services ts JOIN services s ON ts.service_id = s.id WHERE ts.task_id IN (${placeholders})`;
   
       db.all(serviceQuery, taskIds, (err, serviceRows) => {
-        if (err) {
-          return res.status(500).json({
-            success: false,
-            message: "خطأ في جلب الخدمات",
-            error: err.message,
-          });
-        }
+        if (err) return res.status(500).send("فشل في جلب الخدمات");
   
-        // 🧠 Map task_id → array of service names
         const servicesMap = {};
-        serviceRows.forEach((row) => {
+        serviceRows.forEach(row => {
           if (!servicesMap[row.task_id]) servicesMap[row.task_id] = [];
           servicesMap[row.task_id].push(row.name);
         });
   
-        // 🔁 Time block to real hour ranges
-        const timeBlocks = {
-          "9-12 ص": { start: "09:00", end: "12:00" },
-          "1-5 م": { start: "13:00", end: "17:00" },
-          "6-9 م": { start: "18:00", end: "21:00" },
-        };
+        const enriched = tasks.map(t => ({
+          ...t,
+          services: servicesMap[t.id] || [],
+          customerLocation: `https://www.google.com/maps?q=${t.customerLat},${t.customerLng}`
+        }));
   
-        // ✅ Attach service list + start/end timestamps
-        const tasksWithServices = tasks.map((task) => {
-          const { serviceDate, serviceTime } = task;
-          const timeRange = timeBlocks[serviceTime];
-  
-          let startDateTime = null;
-          let endDateTime = null;
-  
-          if (serviceDate && timeRange) {
-            startDateTime = `${serviceDate}T${timeRange.start}`;
-            endDateTime = `${serviceDate}T${timeRange.end}`;
-          }
-  
-          return {
-            ...task,
-            customerLocation: `https://www.google.com/maps?q=${task.customerLat},${task.customerLng}`,
-            services: servicesMap[task.id] || [],
-            start: startDateTime,
-            end: endDateTime,
-          };
-        });
-  
-        res.json(tasksWithServices);
+        res.render("user_tasks", { tasks: enriched });
       });
     });
   });
+  app.get('/my-tasks', (req, res) => {
+    const userId = req.session.userId;
+    if (!userId) return res.status(401).send("غير مصرح");
+  
+    const query = `SELECT * FROM tasks WHERE createdByUserId = ?`;
+    db.all(query, [userId], (err, tasks) => {
+      if (err) return res.status(500).send("خطأ في قاعدة البيانات");
+  
+      const taskIds = tasks.map(t => t.id);
+      if (taskIds.length === 0) return res.render("user_tasks", { tasks: [] });
+  
+      const placeholders = taskIds.map(() => '?').join(',');
+      db.all(`SELECT ts.task_id, s.name FROM task_services ts JOIN services s ON ts.service_id = s.id WHERE ts.task_id IN (${placeholders})`, taskIds, (err, serviceRows) => {
+        const servicesMap = {};
+        serviceRows.forEach(row => {
+          if (!servicesMap[row.task_id]) servicesMap[row.task_id] = [];
+          servicesMap[row.task_id].push(row.name);
+        });
+  
+        const enriched = tasks.map(t => ({
+          ...t,
+          services: servicesMap[t.id] || [],
+          customerLocation: `https://www.google.com/maps?q=${t.customerLat},${t.customerLng}`
+        }));
+  
+        res.render("user_tasks", { tasks: enriched });
+      });
+    });
+  });
+  
   
 
 
@@ -817,6 +955,10 @@ app.get("/search-tasks", (req, res) => {
   const { name = '', status = '' } = req.query;
   const baseQuery = `SELECT * FROM tasks WHERE 1=1`;
   const conditions = [];
+  // if (status) {
+  //   conditions.push("status = ?");
+  //   params.push(status); // ← لا تعدل القيمة هنا
+  // }
   const params = [];
 
   if (name) {
@@ -854,6 +996,29 @@ app.get("/search-tasks", (req, res) => {
     });
   });
 });
+
+const columnExists = async (tableName, columnName) => {
+  return new Promise((resolve, reject) => {
+    db.all(`PRAGMA table_info(${tableName})`, (err, rows) => {
+      if (err) return reject(err);
+      const exists = rows.some(row => row.name === columnName);
+      resolve(exists);
+    });
+  });
+};
+
+const addColumnIfNotExists = async (table, column, type) => {
+  const exists = await columnExists(table, column);
+  if (!exists) {
+    db.run(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+    console.log(`✅ Added column ${column} to ${table}`);
+  } else {
+    console.log(`ℹ️ Column ${column} already exists in ${table}`);
+  }
+};
+(async () => {
+  await addColumnIfNotExists("tasks", "createdByUserId", "INTEGER");
+})();
 
 
 
