@@ -11,7 +11,16 @@
 
 </head>
 <body>
+  <div class="appbar">
+    <img src="/HomeexaBlueWhite.png" alt="HomeexaLogo" class="logo">
+  
+    <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
+</div>
+      
+    </div>
    
+  </header>
+  
     <div class="container">
         <img src="/HomeexaBlueWhite.png" alt="logo">
         <h1>لوحة التحكم </h1>
@@ -20,7 +29,9 @@
             <button onclick="showPage('addUser')">➕ إضافة مستخدم</button>
             <button onclick="showPage('viewUsers')">👥 عرض المستخدمين</button>
             <button onclick="showPage('charts')">📊 الإحصائيات</button>
-            <button onclick="window.location.href='/manage-timeslots'">⏰ إدارة المواعيد</button>
+            <button onclick="showPage('time_slots')">⏰ إدارة المواعيد</button>
+            <!-- <button onclick="showPage('time_slots')">⏰ إدارة المواعيد</button> -->
+            <button onclick="showPage('service')">🛠️ إدارة الخدمات</button>
         </div>
 
         <div id="orders" class="content active">
@@ -142,6 +153,14 @@
                 <%- include('chart') %>
             
     </div>
+    <div id="time_slots" class="content">
+      <%- include('time_slots') %>
+
+    </div>
+    <div id = "service" class="content">
+      <%- include('manage_services',{ services: services }) %>
+    </div>
+    
 
      <script>
        // وظيفة إظهار الصفحات
@@ -337,6 +356,15 @@ document.addEventListener("input", function (event) {
     document.getElementById("orderForm").dispatchEvent(new Event('change'));
   }
 });
+
+async function logout() {
+    const res = await fetch('/logout', { method: 'POST' });
+    if (res.ok) {
+        window.location.href = '/';
+    } else {
+        alert("حدث خطأ أثناء تسجيل الخروج.");
+    }
+}
     
        
     </script>  

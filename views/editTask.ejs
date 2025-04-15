@@ -19,13 +19,24 @@
     input[type="checkbox"] { margin-left: 10px; }
     input[type="submit"] { margin-top: 20px; padding: 10px 20px; background-color: #f15a29; color: white; border: none; border-radius: 5px; cursor: pointer; }
     #totalPrice { font-size: 1.2em; color: #f15a29; }
+    .logo {
+        width: 80px; /* Adjust size as needed */
+        height: auto; /* Maintain aspect ratio */
+        display: block;
+        margin: 10px auto; /* Add spacing */
+    }
+    .container{
+      background-color: rgb(52, 80, 124);
+    }
 </style>
 </head>
 <body>
 <div class="container">
+  <img src="\Artboard 5@5x.png" alt="logo" class="logo" >
   <div class="form-container">
     <h2>تعديل الطلب</h2>
-    <form id="editTaskForm" action="/update_task/<%= task.id %>" method="POST">
+    <form id="editTaskForm" action="/edit_task/<%= task.id %>" method="POST" onsubmit="prepareServicesBeforeSubmit()">
+
       <div class="mb-3">
         <label class="form-label">اسم العميل</label>
         <input type="text" class="form-control" name="customerName" value="<%= task.customerName %>" required>
@@ -48,9 +59,9 @@
       <!-- </div> -->
 
       <!-- خدمات متعددة -->
-      <div class="services-section mt-4">
+      <!-- <div class="services-section mt-4">
         <%- include('partials/services-selection', { selectedServiceIds: task.serviceIds }) %>
-      </div>
+      </div> -->
 
       <div class="mb-3 mt-3">
         <label class="form-label">وقت الخدمة</label>
@@ -66,97 +77,213 @@
         </select>
       </div>
 
+      <%- include('partials/services-selection', { allServices, serviceQuantities, selectedServiceIds: task.serviceIds }) %>
       <div class="mb-3">
-        <label class="form-label">الحالة</label>
-        <select class="form-select" name="status" required>
-          <option value="Assigned" <%= task.status === 'Assigned' ? 'selected' : '' %>>Assigned</option>
-          <option value="InProgress" <%= task.status === 'InProgress' ? 'selected' : '' %>>In Progress</option>
-          <option value="On Hold" <%= task.status === 'On Hold' ? 'selected' : '' %>>On Hold</option>
-          <option value="completed" <%= task.status === 'completed' ? 'selected' : '' %>>Completed</option>
-          <option value="canceled" <%= task.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
-          <option value="New" <%= task.status === 'New' ? 'selected' : '' %>>New</option>
-        </select>
-      </div>
+  <label class="form-label">الحالة</label>
+  <select class="form-select" name="status" required>
+    <option value="Assigned" <%= task.status === 'Assigned' ? 'selected' : '' %>>Assigned</option>
+    <option value="InProgress" <%= task.status === 'InProgress' ? 'selected' : '' %>>In Progress</option>
+    <option value="On Hold" <%= task.status === 'On Hold' ? 'selected' : '' %>>On Hold</option>
+    <option value="completed" <%= task.status === 'completed' ? 'selected' : '' %>>Completed</option>
+    <option value="canceled" <%= task.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
+    <option value="New" <%= task.status === 'New' ? 'selected' : '' %>>New</option>
+  </select>
+</div>
 
-      <div class="mb-3">
-        <h5>الإجمالي: <span id="totalPrice"><%= task.totalPrice %></span> SAR</h5>
-<input type="hidden" name="totalPrice" id="hiddenTotalPrice" value="<%= task.totalPrice %>">
-      </div>
+      
+      <script>
+        function toggleQuantity(checkbox) {
+          const container = checkbox.closest('.service-item');
+          const qtyInput = container.querySelector('.qty-input');
+      
+          if (checkbox.checked) {
+            qtyInput.style.display = 'inline-block';
+            qtyInput.required = true;
+          } else {
+            qtyInput.style.display = 'none';
+            qtyInput.required = false;
+            qtyInput.value = 1;
+          }
+      
+          updateServicePrice(container);
+          updateTotalPrice();
+        }
+      
+        function updateServicePrice(container) {
+          const checkbox = container.querySelector('input[type="checkbox"]');
+          const priceSpan = container.querySelector('.service-price');
+          const qty = parseInt(container.querySelector('.qty-input')?.value || 1);
+          const basePrice = parseFloat(checkbox.dataset.price);
+          const total = checkbox.checked ? basePrice * qty : basePrice;
+          priceSpan.textContent = total.toFixed(2);
+        }
+      
+        function updateTotalPrice() {
+          let total = 0;
+          document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+            const qty = parseInt(cb.closest('.service-item').querySelector('.qty-input')?.value || 1);
+            total += parseFloat(cb.dataset.price) * qty;
+          });
+      
+          document.getElementById('totalPrice').innerText = total.toFixed(2);
+          document.getElementById('hiddenTotalPrice').value = total.toFixed(2);
+        }
+      
+        document.querySelectorAll('.qty-input').forEach(input => {
+          input.addEventListener('input', function () {
+            updateServicePrice(this.closest('.service-item'));
+            updateTotalPrice();
+          });
+        });
+      
+        window.onload = updateTotalPrice;
+      </script>
+
+<div class="mb-3">
+  <h5>الإجمالي بدون ضريبة: <span id="baseTotal">0</span> SAR</h5>
+<h5>ضريبة القيمة المضافة (15%): <span id="vatAmount">0</span> SAR</h5>
+<h5><strong>الإجمالي الكلي: <span id="totalPrice">0</span> SAR</strong></h5>
+<input type="hidden" name="totalPrice" id="hiddenTotalPrice">
+</div>
       <!-- <input type="hidden" name="totalPrice" id="hiddenTotalPrice"> -->
 
 
-      <button type="submit" class="btn btn-primary w-100">💾 حفظ التعديلات</button>
+      <button type="submit" class="btn btn-primary w-100" >💾 حفظ التعديلات</button>
+
     </form>
   </div>
 </div>
 
 <script>
-  // تحديث السعر تلقائيًا
-  function updateTotalPrice() {
-        let total = 0;
-        document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-            total += parseFloat(cb.dataset.price);
-        });
-        document.getElementById('totalPrice').innerText = total.toFixed(2);
-        document.getElementById('hiddenTotalPrice').value = total.toFixed(2);
-    }
+  document.getElementById("editTaskForm").addEventListener("change", function() {
+    let baseTotal = 0;
 
-    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        cb.addEventListener('change', updateTotalPrice);
+    document.querySelectorAll('input[type="checkbox"]:checked').forEach(service => {
+        const container = service.closest(".service-item");
+        const qtyInput = container.querySelector(".qty-input");
+        const quantity = parseInt(qtyInput?.value || 1);
+        const price = parseFloat(service.dataset.price);
+        baseTotal += price * quantity;
     });
 
-    // تشغيل التحديث بمجرد فتح الصفحة
-    window.onload = updateTotalPrice;
+    const vat = baseTotal * 0.15;
+    const grandTotal = baseTotal + vat;
+
+    document.getElementById('baseTotal').innerText = baseTotal.toFixed(2);
+    document.getElementById('vatAmount').innerText = vat.toFixed(2);
+    document.getElementById('totalPrice').innerText = grandTotal.toFixed(2);
+});
+document.addEventListener("input", function (event) {
+  if (event.target.classList.contains("qty-input")) {
+    document.getElementById("orderForm").dispatchEvent(new Event('change'));
+  }
+});
+
+  function prepareServicesBeforeSubmit() {
+    const form = document.getElementById('editTaskForm');
+    document.querySelectorAll('.dynamic-service-hidden').forEach(el => el.remove());
+    document.querySelectorAll("input[type='checkbox']:checked").forEach(cb => {
+      const serviceId = cb.dataset.id;
+      const qty = cb.closest(".service-item").querySelector(".qty-input").value || 1;
+      const hidden = document.createElement("input");
+      hidden.type = "hidden";
+      hidden.name = `qty_${serviceId}`;
+      hidden.value = qty;
+      hidden.classList.add("dynamic-service-hidden");
+      form.appendChild(hidden);
+    });
+  }
 </script>
+
+
 <script>
     function toggleVisibility(sectionId) {
         const section = document.getElementById(sectionId);
         section.style.display = section.style.display === "none" ? "block" : "none";
     }
 
-    document.getElementById("orderForm").addEventListener("change", function() {
-        let total = 0;
-        document.querySelectorAll('input[type="checkbox"]:checked').forEach(service => {
-            total += parseFloat(service.dataset.price);
-        });
-        document.getElementById('totalPrice').innerText = total;
+    // document.getElementById("orderForm").addEventListener("change", function() {
+    //     let total = 0;
+    //     document.querySelectorAll('input[type="checkbox"]:checked').forEach(service => {
+    //         total += parseFloat(service.dataset.price);
+    //     });
+    //     document.getElementById('totalPrice').innerText = total;
+    // });
+
+    document.getElementById("editTaskForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const form = document.getElementById("editTaskForm");
+    const formData = new FormData(form);
+
+    const services = [];
+    document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+      const serviceId = cb.dataset.id;
+      const qty = cb.closest(".service-item").querySelector(".qty-input").value || 1;
+      services.push({ id: serviceId, quantity: parseInt(qty) });
     });
 
-    document.getElementById("orderForm").addEventListener("submit", function(event) {
-        event.preventDefault();
-        const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
-                                      .map(service => service.dataset.id);
-        fetch("/addtask", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ services: selectedServices })
-        })
-        .then(response => response.json())
-        .then(result => {
-            if(result.success) {
-                alert("تم إرسال الطلب بنجاح!");
-                window.location.reload();
-            } else {
-                alert("حدث خطأ: " + result.message);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
+    if (!services.length) {
+      alert("يجب اختيار خدمة واحدة على الأقل.");
+      return;
+    }
 
-    function updateTotalPrice() {
-  let total = 0;
-  document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-    total += parseFloat(cb.dataset.price);
+    const baseTotal = services.reduce((sum, s) => {
+      const checkbox = document.querySelector(`input[data-id="${s.id}"]`);
+      return sum + parseFloat(checkbox.dataset.price) * s.quantity;
+    }, 0);
+
+    const vat = baseTotal * 0.15;
+    const total = baseTotal + vat;
+
+    const taskId = "<%= task.id %>";
+
+    const payload = {
+      customerPhone: formData.get("customerPhone"),
+      customerName: formData.get("customerName"),
+      customerLat: parseFloat(formData.get("customerLat")),
+      customerLng: parseFloat(formData.get("customerLng")),
+      serviceTime: formData.get("serviceTime"),
+      paymentMethod: formData.get("paymentMethod"),
+      status: formData.get("status"),
+      totalPrice: total,
+      services: services
+    };
+
+    try {
+      const response = await fetch(`/edit_task/${taskId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const result = await response.json();
+      if (response.ok && result.success) {
+        alert("تم حفظ التعديلات بنجاح!");
+        window.location.href = "/admin_dashboard";
+      } else {
+        alert("فشل التحديث: " + (result.message || "خطأ غير معروف"));
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      alert("حدث خطأ أثناء إرسال الطلب");
+    }
   });
-  document.getElementById('totalPrice').innerText = total.toFixed(2);
-  document.getElementById('hiddenTotalPrice').value = total.toFixed(2);
-}
 
-document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-  cb.addEventListener('change', updateTotalPrice);
-});
+//     function updateTotalPrice() {
+//   let total = 0;
+//   document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+//     total += parseFloat(cb.dataset.price);
+//   });
+//   document.getElementById('totalPrice').innerText = total.toFixed(2);
+//   document.getElementById('hiddenTotalPrice').value = total.toFixed(2);
+// }
 
-window.onload = updateTotalPrice;
+// document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+//   cb.addEventListener('change', updateTotalPrice);
+// });
+
+// window.onload = updateTotalPrice;
 
 const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => {
   const qtyInput = cb.closest('.service-item').querySelector('.qty-input');
@@ -290,6 +417,64 @@ function placeMarker(location) {
 };
 
 </script>
+<script>
+  function prepareServicesBeforeSubmit() {
+    const form = document.getElementById('editTaskForm');
+  
+    // 🧹 إزالة أي عناصر مخفية قديمة
+    document.querySelectorAll('.dynamic-service-hidden').forEach(el => el.remove());
+  
+    document.querySelectorAll("#services-container input[type='checkbox']:checked").forEach(cb => {
+      const serviceId = cb.dataset.id;
+      const qtyInput = cb.closest(".service-item").querySelector(".qty-input");
+      const quantity = qtyInput ? qtyInput.value : 1;
+  
+      // إضافة input مخفي للخدمة المحددة
+      const hiddenService = document.createElement("input");
+      hiddenService.type = "hidden";
+      hiddenService.name = `qty_${serviceId}`;
+      hiddenService.value = quantity;
+      hiddenService.classList.add("dynamic-service-hidden");
+      form.appendChild(hiddenService);
+    });
+  }
+  </script>
+  <script>
+    function updateTotalPrice() {
+      let baseTotal = 0;
+  
+      document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+        const qtyInput = cb.closest('.service-item').querySelector('.qty-input');
+        const qty = parseInt(qtyInput?.value || 1);
+        const price = parseFloat(cb.dataset.price);
+        baseTotal += price * qty;
+      });
+  
+      const vat = baseTotal * 0.15;
+      const grandTotal = baseTotal + vat;
+  
+      document.getElementById('baseTotal').innerText = baseTotal.toFixed(2);
+      document.getElementById('vatAmount').innerText = vat.toFixed(2);
+      document.getElementById('totalPrice').innerText = grandTotal.toFixed(2);
+      document.getElementById('hiddenTotalPrice').value = grandTotal.toFixed(2);
+    }
+  
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('.qty-input').forEach(input => {
+        input.addEventListener('input', updateTotalPrice);
+      });
+  
+      document.querySelectorAll("input[type='checkbox']").forEach(cb => {
+        cb.addEventListener('change', () => {
+          toggleQuantity(cb);
+          updateTotalPrice();
+        });
+      });
+  
+      updateTotalPrice();
+    });
+  </script>
+  
 
 </body>
 </html>

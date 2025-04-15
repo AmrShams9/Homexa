@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>إدارة الخدمات</title>
+  <style>
+    body { font-family: Arial; background: #f9f9f9; padding: 20px; }
+    table { width: 100%; background: white; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: right; }
+    h2 { color: #34507c; }
+    form { margin-bottom: 20px; }
+    input, select { padding: 5px; margin: 5px;  }
+    button { background: #f15a29; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+    td input[type="text"], td input[type="number"] {
+  padding: 3px 6px;
+  font-size: 12px;
+  width: 100px;
+}
+  </style>
+</head>
+<body>
+  <h2>🛠️ إدارة الخدمات</h2>
+
+  <form action="/add-service" method="POST">
+    <input type="text" name="name" placeholder="اسم الخدمة" required>
+    <input type="text" name="category" placeholder="التصنيف" required>
+    <input type="number" name="price" placeholder="السعر" step="0.01" required>
+    <button type="submit">➕ إضافة</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>الاسم</th><th>التصنيف</th><th>السعر</th><th>إجراء</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% services.forEach(service => { %>
+        <tr>
+          <form action="/update-service/<%= service.id %>" method="POST">
+            <td><input type="text" name="name" value="<%= service.name %>" required></td>
+            <td><input type="text" name="category" value="<%= service.category %>" required></td>
+            <td><input type="number" name="price" value="<%= service.price %>" step="0.01" required></td>
+            <td>
+              <button type="submit">💾</button>
+              <a href="/delete-service/<%= service.id %>" onclick="return confirm('هل أنت متأكد من الحذف؟')">🗑️</a>
+            </td>
+          </form>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</body>
+</html>

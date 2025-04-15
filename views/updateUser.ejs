@@ -95,11 +95,19 @@
         font-size: 14px;
       }
     }
+    .logo {
+        width: 150px; /* Adjust size as needed */
+        height: auto; /* Maintain aspect ratio */
+        display: block;
+        margin: 10px auto; /* Add spacing */
+    }
+    
   </style>
 </head>
 <body>
 
   <div class="container">
+    <img src="/HomeexaBlueWhite.png" alt="logo" class="logo" >
     <h2>تعديل المستخدم</h2>
     <form id="editUserForm" action="/updateUser/<%= id %>" method="POST">
       <label>الاسم الكامل:</label>

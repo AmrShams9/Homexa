@@ -301,7 +301,7 @@ svg {
     background-color: #45a049;
 }
 .delete-btn:hover {
-    background-color: #9e1b1b;
+    background-color: #9e1b1b; 
 }
 .input-group {
     display: flex;
@@ -438,6 +438,51 @@ body { font-family: 'Arial', sans-serif; background-color: #f9f9f9; text-align: 
             padding: 5px 6px;
             margin-right: 6px;
           }
+
+          .appbar {
+            display: flex;
+            justify-content: space-between;
+            /* align-items: center; */
+            background-color: #34507c;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 0 0 8px 8px;
+            margin-bottom: 5px;
+            width: 100vw;       /* ⬅️ العرض الكامل للشاشة */
+  position: relative; /* لو بتستخدم position: fixed للأزرار */
+  box-sizing: border-box; /* يتأكد إن الـ padding ما يأثرش على الحجم */
+          }
+          
+          .logo-title {
+            display: flex;
+            /* align-items: center; */
+            gap: 15px;
+          }
+          
+          .appbar .logo {
+            height: 60px; /* 👈 أكبر */
+          }
+          
+          .logout-btn {
+            /* position: fixed; */
+            /* top: 0px; */
+            right: 900px;
+            background-color: transparent;
+            border: none;
+            font-size: 20px;
+            color: #f15a29;
+            cursor: pointer;
+            z-index: 1000;
+            /* transition: transform 0.2s ease; */
+          }
+          
+          /* .logout-button:hover {
+            transform: scale(1.2);
+          } */
+          /* .logout-button {
+            border: 2px solid red; /* لمعاينة مكانه مؤقتًا 
+          }
+           */
         
              
 

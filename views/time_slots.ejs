@@ -78,7 +78,7 @@
   <h3>✏️ تعديل الفترات الزمنية الموجودة</h3>
 
   <form action="/update-timeslots" method="POST">
-    <% slots.forEach(slot => { %>
+    <% timeSlots.forEach(slot => { %>
       <div class="slot-row">
         <input type="hidden" name="ids" value="<%= slot.id %>">
         <input type="text" name="labels" value="<%= slot.label %>" required>

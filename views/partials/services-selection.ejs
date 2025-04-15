@@ -1,21 +1,155 @@
-<div>
-    <h3 onclick="toggleVisibility('electricity')">خدمات الكهرباء 🔽</h3>
-    <div id="electricity" style="display:none;">
-        <%- include('./categories/electricity.ejs') %>
-    </div>
+<div id="services-container">جارٍ تحميل الخدمات...</div>
 
-    <h3 onclick="toggleVisibility('plumbing')">خدمات السباكة 🔽</h3>
-    <div id="plumbing" style="display:none;">
-        <%- include('./categories/plumbing.ejs') %>
-    </div>
+<style>
+  .dropdown-section {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #fff;
+  }
 
-    <h3 onclick="toggleVisibility('smart')">خدمات سمارت 🔽</h3>
-    <div id="smart" style="display:none;">
-        <%- include('./categories/smart.ejs') %>
-    </div>
+  .dropdown-header {
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 10px;
+    color: #34507c;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-    <h3 onclick="toggleVisibility('other')">خدمات أخرى 🔽</h3>
-    <div id="other" style="display:none;">
-        <%- include('./categories/other.ejs') %>
-    </div>
-</div>
+  .dropdown-header span.arrow {
+    font-size: 18px;
+    transition: transform 0.2s;
+  }
+
+  .dropdown-content {
+    display: none;
+    padding-right: 10px;
+  }
+
+  .service-item {
+    margin-bottom: 10px;
+  }
+
+  .qty-input {
+    margin-right: 10px;
+  }
+</style>
+
+<script>
+  async function loadServices() {
+    const container = document.getElementById("services-container");
+    try {
+      const res = await fetch("/api/services");
+      const data = await res.json();
+
+      container.innerHTML = "";
+
+      for (const category in data) {
+        const section = document.createElement("div");
+        section.className = "dropdown-section";
+
+        const header = document.createElement("div");
+        header.className = "dropdown-header";
+        const arrow = document.createElement("span");
+        arrow.className = "arrow";
+        arrow.innerHTML = "⬇️";
+
+        header.innerHTML = `<span>📂 ${category}</span>`;
+        header.appendChild(arrow);
+
+        const content = document.createElement("div");
+        content.className = "dropdown-content";
+
+        header.onclick = () => {
+          const isVisible = content.style.display === "block";
+          content.style.display = isVisible ? "none" : "block";
+          arrow.innerHTML = isVisible ? "⬇️" : "⬆️";
+        };
+
+        data[category].forEach(service => {
+          const div = document.createElement("div");
+          div.className = "service-item";
+          div.innerHTML = `
+            <label>
+              <input type="checkbox" name="services" value="${service.id}" data-id="${service.id}" data-price="${service.price}">
+
+              ${service.name} (<span class="service-price">${service.price.toFixed(2)}</span> SAR)
+            </label>
+            <input type="number" class="qty-input" placeholder="الكمية" min="1" step="1" value="1"
+                   style="display:none;">
+          `;
+
+          const checkbox = div.querySelector("input[type='checkbox']");
+          const qtyInput = div.querySelector(".qty-input");
+          const priceSpan = div.querySelector(".service-price");
+
+          checkbox.addEventListener("change", () => {
+            if (checkbox.checked) {
+              qtyInput.style.display = "inline-block";
+              qtyInput.required = true;
+              updatePrice();
+            } else {
+              qtyInput.style.display = "none";
+              qtyInput.required = false;
+              qtyInput.value = 1;
+              updatePrice();
+            }
+          });
+
+          qtyInput.addEventListener("input", updatePrice);
+
+          function updatePrice() {
+            const base = parseFloat(checkbox.dataset.price);
+            const qty = parseInt(qtyInput.value || 1);
+            const total = checkbox.checked ? base * qty : base;
+            priceSpan.textContent = total.toFixed(2);
+          }
+
+          content.appendChild(div);
+        });
+
+        section.appendChild(header);
+        section.appendChild(content);
+        container.appendChild(section);
+      }
+
+    } catch (err) {
+      container.innerHTML = "<p style='color: red;'>فشل تحميل الخدمات</p>";
+      console.error("Error loading services:", err);
+    }
+  }
+
+  loadServices();
+</script>
+<script>
+    document.getElementById("editTaskForm").addEventListener("submit", function (e) {
+      // حذف الحقول السابقة عشان نبدأ من جديد
+      document.querySelectorAll(".hidden-service").forEach(el => el.remove());
+  
+      const form = this;
+      const selected = document.querySelectorAll('input[type="checkbox"][name="services"]:checked');
+  
+      selected.forEach(cb => {
+        const serviceId = cb.value;
+        const qty = cb.closest('.service-item').querySelector('.qty-input').value || 1;
+  
+        // إنشاء input مخفي للخدمة
+        const idInput = document.createElement("input");
+        idInput.type = "hidden";
+        idInput.name = `qty_${serviceId}`;
+        idInput.value = qty;
+        idInput.className = "hidden-service";
+        form.appendChild(idInput);
+      });
+    });
+    document.addEventListener("input", function (event) {
+  if (event.target.classList.contains("qty-input")) {
+    if (parseInt(event.target.value) < 1) {
+      event.target.value = 1;
+    }
+  }
+});
+  </script>

@@ -62,6 +62,11 @@ db.run(`
 
 
 /////////////////////////////Services Talble///////////////////////////////
+// db.run("DROP TABLE IF EXISTS services", (err) => {
+//   if (err) return console.error("❌ فشل حذف الجدول:", err.message);
+//   console.log("✅ تم حذف جدول الخدمات بنجاح");
+// });
+
 db.run(`
     CREATE TABLE IF NOT EXISTS services (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -273,10 +278,11 @@ app.post("/login", (req, res) => {
   db.get("SELECT * FROM users WHERE username = ? AND password = ?", [username, password], (err, user) => {
       if (err) {
           console.error("Error fetching user:", err);
-          return res.status(500).send("حدث خطأ أثناء تسجيل الدخول.");
+          return res.send(`<script>alert("حدث خطأ داخلي."); window.location.href = "/";</script>`);
+        
       }
       if (!user) {
-          return res.send("Invalid username or password.");
+          return res.send(`<script>alert("اسم المستخدم أو كلمة المرور غير صحيحة"); window.location.href = "/";</script>`);
       }
 
       // ✅ حفظ المستخدم في الجلسة
@@ -320,7 +326,16 @@ app.get("/admin_dashboard", (req, res) => {
 
     db.all("SELECT * FROM time_slots", [], (err, timeSlots) => {
       if (err) return res.status(500).send("خطأ في الفترات الزمنية");
-      res.render("admin_dashboard", { users, timeSlots });
+
+      db.all("SELECT * FROM services", [], (err, services) => {
+        if (err) return res.status(500).send("حدث خطأ أثناء جلب الخدمات");
+
+        res.render("admin_dashboard", {
+          users,
+          timeSlots,
+          services // ✅ مرر الخدمات هنا
+        });
+      });
     });
   });
 });
@@ -733,6 +748,7 @@ app.get('/edit_task/:id', (req, res) => {
       if (!task) {
         return res.status(404).send('لم يتم العثور على المهمة');
       }
+      
   
       db.all(`SELECT service_id FROM task_services WHERE task_id = ?`, [taskId], (err, serviceRows) => {
         if (err) {
@@ -741,6 +757,10 @@ app.get('/edit_task/:id', (req, res) => {
         }
   
         const selectedServiceIds = serviceRows.map(row => row.service_id);
+  const serviceQuantities = {};
+  serviceRows.forEach(row => {
+    serviceQuantities[row.service_id] = row.quantity;
+  });
   
         db.all(`SELECT * FROM services`, [], (err, allServices) => {
           if (err) {
@@ -760,7 +780,8 @@ app.get('/edit_task/:id', (req, res) => {
               totalPrice: totalPrice
             },
             allServices,
-            selectedServiceIds
+            selectedServiceIds,
+            serviceQuantities 
           });
         });
       });
@@ -954,25 +975,109 @@ app.get('/edit_task/:id', (req, res) => {
   // //     });
   // //   });
   // // });
-  app.post("/update_task/:id", (req, res) => {
-    const { customerName, customerPhone, customerLat, customerLng, serviceTime, paymentMethod, status, totalPrice } = req.body;
+  app.post('/update_task/:id', (req, res) => {
     const taskId = req.params.id;
+    
+    const {
+      customerPhone,
+      customerName,
+      customerLat,
+      customerLng,
+      serviceTime,
+      paymentMethod,
+      status,
+      totalPrice
+    } = req.body;
   
     const updateQuery = `
-      UPDATE tasks
-      SET customerName = ?, customerPhone = ?, customerLat = ?, customerLng = ?,
-          serviceTime = ?, paymentMethod = ?, status = ?, totalPrice = ?
-      WHERE id = ?
+      UPDATE tasks SET customerName = ?, customerPhone = ?, customerLat = ?, customerLng = ?,
+      serviceTime = ?, paymentMethod = ?, status = ?, totalPrice = ? WHERE id = ?
     `;
   
-    db.run(updateQuery, [customerName, customerPhone, customerLat, customerLng, serviceTime, paymentMethod, status, totalPrice, taskId], function(err) {
-      if (err) {
-        console.error("Error updating task:", err);
-        return res.status(500).send("حدث خطأ أثناء تحديث الطلب");
-      }
-      res.redirect("/admin_dashboard"); // أو اعرض صفحة تأكيد التعديل
+    db.run(updateQuery, [
+      customerName,
+      customerPhone,
+      customerLat,
+      customerLng,
+      serviceTime,
+      paymentMethod,
+      status,
+      totalPrice,
+      taskId
+    ], err => {
+      if (err) return res.status(500).send("فشل التحديث");
+  
+      // 🧹 حذف الخدمات القديمة
+      db.run(`DELETE FROM task_services WHERE task_id = ?`, [taskId], err => {
+        if (err) return res.status(500).send("فشل حذف الخدمات");
+  
+        const insertStmt = db.prepare(`INSERT INTO task_services (task_id, service_id, quantity) VALUES (?, ?, ?)`);
+  
+        Object.keys(req.body).forEach(key => {
+          if (key.startsWith("qty_")) {
+            const serviceId = key.split("_")[1];
+            const quantity = parseInt(req.body[key]);
+            insertStmt.run(taskId, serviceId, quantity);
+          }
+        });
+  
+        insertStmt.finalize();
+        res.redirect("/admin_dashboard");
+      });
     });
   });
+  app.post('/edit_task/:id', (req, res) => {
+    const taskId = req.params.id;
+    const {
+      customerPhone,
+      customerName,
+      customerLat,
+      customerLng,
+      serviceTime,
+      paymentMethod,
+      status,
+      totalPrice,
+      services
+    } = req.body;
+  
+    if (!customerPhone || !customerName || !customerLat || !customerLng || !serviceTime || !paymentMethod || !Array.isArray(services) || services.length === 0) {
+      return res.status(400).json({ success: false, message: "جميع الحقول مطلوبة ويجب اختيار خدمة واحدة على الأقل" });
+    }
+  
+    const updateQuery = `
+      UPDATE tasks SET customerName = ?, customerPhone = ?, customerLat = ?, customerLng = ?,
+      serviceTime = ?, paymentMethod = ?, status = ?, totalPrice = ? WHERE id = ?
+    `;
+  
+    db.run(updateQuery, [
+      customerName,
+      customerPhone,
+      customerLat,
+      customerLng,
+      serviceTime,
+      paymentMethod,
+      status,
+      totalPrice,
+      taskId
+    ], err => {
+      if (err) return res.status(500).json({ success: false, message: "فشل التحديث", error: err.message });
+  
+      db.run(`DELETE FROM task_services WHERE task_id = ?`, [taskId], err => {
+        if (err) return res.status(500).json({ success: false, message: "فشل حذف الخدمات" });
+  
+        const insertStmt = db.prepare(`INSERT INTO task_services (task_id, service_id, quantity) VALUES (?, ?, ?)`);
+  
+        services.forEach(service => {
+          insertStmt.run(taskId, service.id, service.quantity || 1);
+        });
+  
+        insertStmt.finalize();
+        return res.json({ success: true, message: "تم التحديث بنجاح" });
+      });
+    });
+  });
+  
+  
   
   
   
@@ -1126,6 +1231,65 @@ const addColumnIfNotExists = async (table, column, type) => {
 (async () => {
   await addColumnIfNotExists("tasks", "createdByUserId", "INTEGER");
 })();
+///////////////////////////////////////////////////////////////////
+(async () => {
+  await addColumnIfNotExists("services", "category", "TEXT");
+})();
+
+(async () => {
+  await addColumnIfNotExists("task_services", "quantity", "INTEGER");
+})();
+//////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+app.get('/manage-services', (req, res) => {
+  db.all('SELECT * FROM services', [], (err, services) => {
+    if (err) return res.status(500).send("حدث خطأ أثناء تحميل الخدمات");
+    res.render('manage_services', { services });
+  });
+});
+
+app.post('/add-service', (req, res) => {
+  const { name, category, price } = req.body;
+  db.run('INSERT INTO services (name, category, price) VALUES (?, ?, ?)', [name, category, price], err => {
+    if (err) return res.status(500).send("فشل في الإضافة");
+    res.redirect('/manage-services');
+  });
+});
+
+app.post('/update-service/:id', (req, res) => {
+  const { name, category, price } = req.body;
+  db.run('UPDATE services SET name = ?, category = ?, price = ? WHERE id = ?', [name, category, price, req.params.id], err => {
+    if (err) return res.status(500).send("فشل التعديل");
+    res.redirect('/manage-services');
+  });
+});
+
+app.get('/delete-service/:id', (req, res) => {
+  db.run('DELETE FROM services WHERE id = ?', [req.params.id], err => {
+    if (err) return res.status(500).send("فشل الحذف");
+    res.redirect('/manage-services');
+  });
+});
+
+app.get("/api/services", (req, res) => {
+  db.all("SELECT * FROM services", (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: "فشل في جلب الخدمات" });
+    }
+
+    // تقسيم حسب التصنيف
+    const grouped = rows.reduce((acc, s) => {
+      if (!acc[s.category]) acc[s.category] = [];
+      acc[s.category].push(s);
+      return acc;
+    }, {});
+
+    res.json(grouped);
+  });
+});
+
+
 
 
 
