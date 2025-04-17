@@ -51,6 +51,7 @@
 
     input {
       width: 100%;
+      margin-left: -10px;
       padding: 9px;
       margin-bottom: 14px;
       border: 2px solid #34507c;
@@ -110,25 +111,25 @@
     <img src="/HomeexaBlueWhite.png" alt="logo" class="logo" >
     <h2>تعديل المستخدم</h2>
     <form id="editUserForm" action="/updateUser/<%= id %>" method="POST">
-      <label>الاسم الكامل:</label>
+      <label>:الاسم الكامل</label>
       <input type="text" name="fullName" value="<%= fullname %>" required>
 
-      <label>اسم المستخدم:</label>
+      <label>:اسم المستخدم</label>
       <input type="text" name="username" value="<%= username %>" required>
 
-      <label>كلمة المرور (اتركه فارغًا إذا لم ترغب في تغييره):</label>
+      <label>:كلمة المرور (اتركه فارغًا إذا لم ترغب في تغييره)</label>
       <input type="password" name="password" placeholder="********">
 
-      <label>اسم المورد:</label>
+      <label>:اسم المورد</label>
       <input type="text" name="supplier" value="<%= supplier %>">
 
-      <label>الفرع:</label>
+      <label>:الفرع</label>
       <input type="text" name="branch" value="<%= branch %>">
 
-      <label>رقم الهاتف:</label>
+      <label>:رقم الهاتف</label>
       <input type="text" name="phone" value="<%= phone %>">
 
-      <label>البريد الإلكتروني:</label>
+      <label>:البريد الإلكتروني</label>
       <input type="email" name="email" value="<%= email %>">
 
       <button type="submit">💾 حفظ التعديلات</button>

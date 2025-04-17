@@ -115,75 +115,75 @@ db.run("INSERT OR IGNORE INTO users (fullName, username, supplier, branch, phone
     
         // إدخال البيانات إذا لم تكن موجودة
         db.serialize(() => {
-          db.run("INSERT INTO services (name, price, category) VALUES ('افحص سباكة بيتك', 400, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('افحص كهرباء بيتك', 400, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تأسيس إنارة أرضية', 75, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تأسيس خط او نقطة كهربائية خارجي', 70, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تبديل فيش كهرباء', 20, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تثبيت القفل الذكي للباب بدون برمجة', 120, 'smart');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب اكسسوارات دورة مياه او مرآه / بالحبة الواحدة', 25, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب انتركوم', 200, 'smart');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير السخان عادي', 100, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير دش الاستحمام', 50, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير دينمو', 200, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير صفاية أرضية', 50, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير عوامة خزان', 70, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير قلب سخان مركزي', 80, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير مفتاح انارة', 20, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير مفتاح تشغيل المكيف او السخان', 30, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب أو تغيير إنارة أرضية', 35, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب ثريا جاهزة', 75, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب ثريا مع توصيل الاكسسوارات وملحقاتها', 190, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب جرس', 50, 'smart');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب حامل تلفزيون', 40, 'other');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب إنارة مع تخريم ( الحجم الصغير )', 30, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب إنارة مع  تخريم ( الحجم الكبير )', 50, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير سخان مخفي / فوري', 150, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب سماعة دش', 20, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب سيفون عربي', 80, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب شريط ليد مخفي ( اكثر من 10 متر )', 15, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب شريط ليد مخفي ( 10 متر وأقل )', 30, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب طبلون كهرباء كامل داخلي', 500, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب فلتر مياه', 200, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب كابينة استحمام شاور ( حواجز )', 300, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب كرسي افرنجي', 150, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('ازالة كرسي افرنجي', 100, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب لمبات نيون', 40, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب لوحة', 30, 'other');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب مروحة شفط', 50, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب مغسلة', 150, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب مغسلة دولاب', 200, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب طقم شور', 200, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تسليك انسداد التصريف', 300, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تسليك انسداد حوض المطبخ', 80, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير الكشاف الخارجي', 50, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب خلاط', 50, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب رداد سخان', 50, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب شطاف', 30, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب قفل الأبواب', 40, 'other');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب مقبض الأبواب', 40, 'other');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير سبوت لايت', 15, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير شمعة عامود (400led)', 50, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير غطاء كرسي افرنجي', 44, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير قلب سخان عادي', 80, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير لمبات السطح', 35, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير محبس زاوية', 25, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير محبس زاوية مع لي', 50, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تفيير مفتاح فرعي لطبلون الكهرب', 50, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير هراب مغسلة', 35, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغييرعوامة الخزان', 80, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير مفتاح  رئيسي لطبلون الكهرباء', 120, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تمديد تصريف الغسالة', 150, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تمديد فيش كهرباء', 50, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تمديد كهرباء لغسالة او نشافة ملابس جديد من الطبلون', 150, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تمديد كهرباء لفرن جديد من الطبلون', 150, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تنظيف خزانات', 180, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تنظيف سخان عادي', 80, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('صيانة انتركوم', 120, 'smart');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('فك وتركيب كرسي عربي', 250, 'plumbing');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تنظيف سخان مركزي', 150, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب سخان مركزي', 250, 'electricity');");
-          db.run("INSERT INTO services (name, price, category) VALUES ('تبديل إنارة', 20, 'electricity');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('افحص سباكة بيتك', 400, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('افحص كهرباء بيتك', 400, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تأسيس إنارة أرضية', 75, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تأسيس خط او نقطة كهربائية خارجي', 70, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تبديل فيش كهرباء', 20, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تثبيت القفل الذكي للباب بدون برمجة', 120, 'ذكى');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب اكسسوارات دورة مياه او مرآه / بالحبة الواحدة', 25, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب انتركوم', 200, 'ذكى');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير السخان عادي', 100, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير دش الاستحمام', 50, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير دينمو', 200, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير صفاية أرضية', 50, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير عوامة خزان', 70, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير قلب سخان مركزي', 80, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير مفتاح انارة', 20, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير مفتاح تشغيل المكيف او السخان', 30, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب أو تغيير إنارة أرضية', 35, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب ثريا جاهزة', 75, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب ثريا مع توصيل الاكسسوارات وملحقاتها', 190, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب جرس', 50, 'ذكى');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب حامل تلفزيون', 40, 'اخرى');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب إنارة مع تخريم ( الحجم الصغير )', 30, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب إنارة مع  تخريم ( الحجم الكبير )', 50, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب او تغيير سخان مخفي / فوري', 150, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب سماعة دش', 20, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب سيفون عربي', 80, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب شريط ليد مخفي ( اكثر من 10 متر )', 15, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب شريط ليد مخفي ( 10 متر وأقل )', 30, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب طبلون كهرباء كامل داخلي', 500, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب فلتر مياه', 200, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب كابينة استحمام شاور ( حواجز )', 300, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب كرسي افرنجي', 150, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('ازالة كرسي افرنجي', 100, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب لمبات نيون', 40, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب لوحة', 30, 'اخرى');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب مروحة شفط', 50, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب مغسلة', 150, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب مغسلة دولاب', 200, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب طقم شور', 200, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تسليك انسداد التصريف', 300, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تسليك انسداد حوض المطبخ', 80, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير الكشاف الخارجي', 50, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب خلاط', 50, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب رداد سخان', 50, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب شطاف', 30, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب قفل الأبواب', 40, 'اخرى');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير او تركيب مقبض الأبواب', 40, 'اخرى');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير سبوت لايت', 15, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير شمعة عامود (400led)', 50, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير غطاء كرسي افرنجي', 44, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير قلب سخان عادي', 80, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير لمبات السطح', 35, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير محبس زاوية', 25, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير محبس زاوية مع لي', 50, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تفيير مفتاح فرعي لطبلون الكهرب', 50, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير هراب مغسلة', 35, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغييرعوامة الخزان', 80, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تغيير مفتاح  رئيسي لطبلون الكهرباء', 120, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تمديد تصريف الغسالة', 150, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تمديد فيش كهرباء', 50, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تمديد كهرباء لغسالة او نشافة ملابس جديد من الطبلون', 150, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تمديد كهرباء لفرن جديد من الطبلون', 150, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تنظيف خزانات', 180, ' سباكة');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تنظيف سخان عادي', 80, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('صيانة انتركوم', 120, 'ذكى');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('فك وتركيب كرسي عربي', 250, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تنظيف سخان مركزي', 150, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تركيب سخان مركزي', 250, 'كهرباء');");
+          db.run("INSERT INTO services (name, price, category) VALUES ('تبديل إنارة', 20, 'كهرباء');");
           
         });
     });
@@ -404,7 +404,7 @@ app.post("/add-timeslot", (req, res) => {
   const { label, start, end } = req.body;
   db.run("INSERT INTO time_slots (label, start, end) VALUES (?, ?, ?)", [label, start, end], err => {
     if (err) return res.status(500).send("فشل في الإضافة");
-    res.redirect("/time_slots");
+    res.redirect("/admin_dashboard");
   });
 });
 
@@ -557,7 +557,7 @@ app.post('/addtask', (req, res) => {
       customerPhone, customerName, customerLat, customerLng,
       serviceDate, serviceTime, paymentMethod, status,
       totalPrice, createdAt, createdByUserId
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'Assigned', ?, datetime('now'), ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'New', ?, datetime('now'), ?)
   `;
 
   db.run(sql, [
@@ -737,56 +737,54 @@ app.get("/gettasks", (req, res) => {
 // GET route to display the edit form
 // GET route to display the edit form - Fixed to match your schema
 app.get('/edit_task/:id', (req, res) => {
-    const taskId = req.params.id;
-  
-    db.get(`SELECT * FROM tasks WHERE id = ?`, [taskId], (err, task) => {
-      if (err) {
-        console.error('Error fetching task:', err);
-        return res.status(500).send('حدث خطأ أثناء جلب بيانات المهمة');
-      }
-  
-      if (!task) {
-        return res.status(404).send('لم يتم العثور على المهمة');
-      }
-      
-  
-      db.all(`SELECT service_id FROM task_services WHERE task_id = ?`, [taskId], (err, serviceRows) => {
-        if (err) {
-          console.error('Error fetching task services:', err);
-          return res.status(500).send('حدث خطأ أثناء جلب خدمات المهمة');
-        }
-  
-        const selectedServiceIds = serviceRows.map(row => row.service_id);
-  const serviceQuantities = {};
-  serviceRows.forEach(row => {
-    serviceQuantities[row.service_id] = row.quantity;
-  });
-  
-        db.all(`SELECT * FROM services`, [], (err, allServices) => {
-          if (err) {
-            console.error('Error fetching all services:', err);
-            return res.status(500).send('حدث خطأ أثناء جلب قائمة الخدمات');
+  const taskId = req.params.id;
+
+  db.get(`SELECT * FROM tasks WHERE id = ?`, [taskId], (err, task) => {
+    if (err) return res.status(500).send('حدث خطأ أثناء جلب بيانات المهمة');
+    if (!task) return res.status(404).send('لم يتم العثور على المهمة');
+
+    db.all(`SELECT service_id, quantity FROM task_services WHERE task_id = ?`, [taskId], (err, serviceRows) => {
+      if (err) return res.status(500).send('حدث خطأ أثناء جلب خدمات المهمة');
+
+      const selectedServiceIds = serviceRows.map(row => row.service_id);
+      const serviceQuantities = {};
+      serviceRows.forEach(row => {
+        serviceQuantities[row.service_id] = row.quantity;
+      });
+
+      db.all(`SELECT * FROM services`, [], (err, allServices) => {
+        if (err) return res.status(500).send('حدث خطأ أثناء جلب قائمة الخدمات');
+
+        // ✅ حساب السعر الإجمالي مع الضريبة
+        let baseTotal = 0;
+        selectedServiceIds.forEach(id => {
+          const service = allServices.find(s => s.id === id);
+          if (service) {
+            const qty = serviceQuantities[id] || 1;
+            baseTotal += service.price * qty;
           }
-  
-          // حساب السعر الإجمالي بناءً على الخدمات المختارة
-          const totalPrice = allServices
-            .filter(service => selectedServiceIds.includes(service.id))
-            .reduce((sum, s) => sum + s.price, 0);
-  
-          res.render('editTask', {
-            task: {
-              ...task,
-              serviceIds: selectedServiceIds,
-              totalPrice: totalPrice
-            },
-            allServices,
-            selectedServiceIds,
-            serviceQuantities 
-          });
+        });
+
+        const vat = baseTotal * 0.15;
+        const totalPrice = baseTotal + vat;
+
+        res.render('editTask', {
+          task: {
+            ...task,
+            serviceIds: selectedServiceIds,
+            totalPrice: totalPrice
+          },
+          allServices,
+          selectedServiceIds,
+          serviceQuantities
         });
       });
     });
   });
+});
+
+
+
   
   
   
@@ -1253,7 +1251,7 @@ app.post('/add-service', (req, res) => {
   const { name, category, price } = req.body;
   db.run('INSERT INTO services (name, category, price) VALUES (?, ?, ?)', [name, category, price], err => {
     if (err) return res.status(500).send("فشل في الإضافة");
-    res.redirect('/manage-services');
+    res.redirect('admin_dashboard');
   });
 });
 
@@ -1261,14 +1259,14 @@ app.post('/update-service/:id', (req, res) => {
   const { name, category, price } = req.body;
   db.run('UPDATE services SET name = ?, category = ?, price = ? WHERE id = ?', [name, category, price, req.params.id], err => {
     if (err) return res.status(500).send("فشل التعديل");
-    res.redirect('/manage-services');
+    res.redirect('/admin_dashboard');
   });
 });
 
 app.get('/delete-service/:id', (req, res) => {
   db.run('DELETE FROM services WHERE id = ?', [req.params.id], err => {
     if (err) return res.status(500).send("فشل الحذف");
-    res.redirect('/manage-services');
+    res.redirect('/admin_dashboard');
   });
 });
 

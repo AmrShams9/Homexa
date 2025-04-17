@@ -72,15 +72,17 @@
         data[category].forEach(service => {
           const div = document.createElement("div");
           div.className = "service-item";
-          div.innerHTML = `
-            <label>
-              <input type="checkbox" name="services" value="${service.id}" data-id="${service.id}" data-price="${service.price}">
+          const isChecked = window.preSelectedServiceQuantities?.hasOwnProperty(service.id);
+const quantity = isChecked ? window.preSelectedServiceQuantities[service.id] : 1;
 
-              ${service.name} (<span class="service-price">${service.price.toFixed(2)}</span> SAR)
-            </label>
-            <input type="number" class="qty-input" placeholder="الكمية" min="1" step="1" value="1"
-                   style="display:none;">
-          `;
+div.innerHTML = `
+  <label>
+    <input type="checkbox" name="services" value="${service.id}" data-id="${service.id}" data-price="${service.price}" ${isChecked ? 'checked' : ''}>
+    ${service.name} (<span class="service-price">${(service.price * quantity).toFixed(2)}</span> SAR)
+  </label>
+  <input type="number" class="qty-input" placeholder="الكمية" min="1" value="${quantity}" style="${isChecked ? '' : 'display:none;'}">
+`;
+
 
           const checkbox = div.querySelector("input[type='checkbox']");
           const qtyInput = div.querySelector(".qty-input");
@@ -123,6 +125,18 @@
   }
 
   loadServices();
+</script>
+<script>
+  const isChecked = selectedServiceIds.includes(service.id);
+div.innerHTML = `
+  <label>
+    <input type="checkbox" name="services" value="${service.id}" data-id="${service.id}" data-price="${service.price}" ${isChecked ? 'checked' : ''}>
+    ${service.name} (<span class="service-price">${parseFloat(service.price).toFixed(2)}</span> SAR)
+  </label>
+  <input type="number" class="qty-input" placeholder="الكمية" min="1" step="1" value="${isChecked ? serviceQuantities[service.id] || 1 : 1}"
+         style="${isChecked ? '' : 'display:none;'}">
+`;
+
 </script>
 <script>
     document.getElementById("editTaskForm").addEventListener("submit", function (e) {

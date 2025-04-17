@@ -60,8 +60,15 @@
 
       <!-- خدمات متعددة -->
       <!-- <div class="services-section mt-4">
-        <%- include('partials/services-selection', { selectedServiceIds: task.serviceIds }) %>
+       
       </div> -->
+      <%- include('partials/services-selection', {
+        allServices: allServices,
+        selectedServiceIds: selectedServiceIds || [],
+        serviceQuantities: serviceQuantities || {}
+      }) %>
+      
+      
 
       <div class="mb-3 mt-3">
         <label class="form-label">وقت الخدمة</label>
@@ -140,11 +147,14 @@
       </script>
 
 <div class="mb-3">
-  <h5>الإجمالي بدون ضريبة: <span id="baseTotal">0</span> SAR</h5>
-<h5>ضريبة القيمة المضافة (15%): <span id="vatAmount">0</span> SAR</h5>
-<h5><strong>الإجمالي الكلي: <span id="totalPrice">0</span> SAR</strong></h5>
-<input type="hidden" name="totalPrice" id="hiddenTotalPrice">
+  <h5>الإجمالي بدون ضريبة: <span id="baseTotal"><%= (task.totalPrice / 1.15).toFixed(2) %></span> SAR</h5>
+  <h5>ضريبة القيمة المضافة (15%): <span id="vatAmount"><%= ((task.totalPrice / 1.15) * 0.15).toFixed(2) %></span> SAR</h5>
+  <h5><strong>الإجمالي الكلي: <span id="totalPrice"><%= task.totalPrice %></span> SAR</strong></h5>
+  <input type="hidden" name="totalPrice" id="hiddenTotalPrice" value="<%= task.totalPrice %>">
+  
 </div>
+
+
       <!-- <input type="hidden" name="totalPrice" id="hiddenTotalPrice"> -->
 
 
@@ -194,6 +204,12 @@ document.addEventListener("input", function (event) {
     });
   }
 </script>
+<script>
+  window.preSelectedServiceQuantities = <%- JSON.stringify(serviceQuantities || {})  %>;
+</script>
+
+
+
 
 
 <script>
@@ -269,6 +285,7 @@ document.addEventListener("input", function (event) {
       alert("حدث خطأ أثناء إرسال الطلب");
     }
   });
+  
 
 //     function updateTotalPrice() {
 //   let total = 0;

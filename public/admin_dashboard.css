@@ -440,49 +440,42 @@ body { font-family: 'Arial', sans-serif; background-color: #f9f9f9; text-align: 
           }
 
           .appbar {
+            position: fixed;                 /* يجعل الشريط في الأعلى */
+            top: 0;
+            left: 0;
+            width: 100%;                    /* يملأ الشاشة بالكامل */
             display: flex;
-            justify-content: space-between;
-            /* align-items: center; */
+            justify-content: space-between; /* يوزع العناصر */
+            /* align-items:self-start; */
             background-color: #34507c;
             color: white;
-            padding: 8px 20px;
-            border-radius: 0 0 8px 8px;
-            margin-bottom: 5px;
-            width: 100vw;       /* ⬅️ العرض الكامل للشاشة */
-  position: relative; /* لو بتستخدم position: fixed للأزرار */
-  box-sizing: border-box; /* يتأكد إن الـ padding ما يأثرش على الحجم */
+            /* padding: 10px 20px; */
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           }
           
-          .logo-title {
-            display: flex;
-            /* align-items: center; */
-            gap: 15px;
-          }
-          
-          .appbar .logo {
-            height: 60px; /* 👈 أكبر */
+          .logo {
+            height: 50px;
           }
           
           .logout-btn {
-            /* position: fixed; */
-            /* top: 0px; */
-            right: 900px;
-            background-color: transparent;
+            background-color: #f15a29;
             border: none;
-            font-size: 20px;
-            color: #f15a29;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 3px;
             cursor: pointer;
-            z-index: 1000;
-            /* transition: transform 0.2s ease; */
-          }
+            font-size: 12px;
+            position: relative; /* ليس absolute حتى يتناسب مع .appbar */
+            width: auto; /* يمنع توسع الزر */
+            height: auto; /* يمنع توسع الزر */
+            margin-left: 25px;
+        }
           
-          /* .logout-button:hover {
-            transform: scale(1.2);
+          /* .logout-btn:hover {
+            background-color: #d34714;
           } */
-          /* .logout-button {
-            border: 2px solid red; /* لمعاينة مكانه مؤقتًا 
-          }
-           */
+          
         
              
 
