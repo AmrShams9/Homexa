@@ -22,10 +22,12 @@
 
         /* App Bar */
         .appbar {
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
     background-color: #34507c;
-    padding: 10px;
+    padding: 5px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -210,7 +212,7 @@
             
             <!-- <div class="container"> -->
                 <div class="location-input">
-                    <input type="text" name="customerLocation" id="customerLocation" placeholder="اضغط لتحديد موقعك" readonly>
+                    <input type="text" name="customerLocation" id="customerLocation" placeholder=" اضغط الخريطه لتحديد موقع العميل "readonly>
                 </div>
             
                 <input type="hidden" name="customerLat" id="customerLat">
@@ -218,7 +220,8 @@
             
                 <input id="map-search" class="map-search" type="text" placeholder="ابحث عن الموقع">
                 <div id="map"></div>
-                <input type="date" name="serviceDate" id="serviceDate" required>
+                <h2> احجز موعد</h2>
+                <input type="date" name="serviceDate" id="serviceDate" placeholder=" احجز موعد"  required>
             
 
                 <h2>اختر الخدمات المطلوبة:</h2>
@@ -256,6 +259,7 @@
                   <p><strong>العميل:</strong> <%= task.customerName %></p>
                   <p><strong>الخدمات:</strong> <%= task.serviceNames || 'لا توجد خدمات' %></p>
                   <p><strong>الوقت:</strong> <%= task.serviceTime %></p>
+                  <p><strong>اليوم:</strong> <%= task.serviceDate %></p>
                   <p><strong>الدفع:</strong> <%= task.paymentMethod %></p>
                   <p><strong>السعر:</strong> <%= task.totalPrice %> SAR</p>
                   <p><strong>الحالة:</strong> <%= task.status %></p>

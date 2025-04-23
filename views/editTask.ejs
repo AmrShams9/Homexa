@@ -466,6 +466,7 @@ function placeMarker(location) {
         const price = parseFloat(cb.dataset.price);
         baseTotal += price * qty;
       });
+      if (baseTotal === 0) return;
   
       const vat = baseTotal * 0.15;
       const grandTotal = baseTotal + vat;

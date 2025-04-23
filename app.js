@@ -628,7 +628,7 @@ app.get("/gettasks", (req, res) => {
     const placeholders = taskIds.map(() => '?').join(',');
 
     const serviceQuery = `
-      SELECT ts.task_id, s.name 
+      SELECT ts.task_id, s.name, ts.quantity
       FROM task_services ts 
       JOIN services s ON ts.service_id = s.id 
       WHERE ts.task_id IN (${placeholders})
@@ -643,16 +643,18 @@ app.get("/gettasks", (req, res) => {
         });
       }
 
+      // ربط الخدمات بكل طلب
       const servicesMap = {};
       serviceRows.forEach(row => {
         if (!servicesMap[row.task_id]) servicesMap[row.task_id] = [];
-        servicesMap[row.task_id].push(row.name);
+        servicesMap[row.task_id].push(`${row.name} (×${row.quantity})`);
       });
 
       const enrichedTasks = tasks.map(task => ({
         ...task,
         customerLocation: `https://www.google.com/maps?q=${task.customerLat},${task.customerLng}`,
-        services: servicesMap[task.id] || []
+         services: servicesMap[task.id] || [] 
+        
       }));
 
       res.json(enrichedTasks);
@@ -766,13 +768,16 @@ app.get('/edit_task/:id', (req, res) => {
         });
 
         const vat = baseTotal * 0.15;
-        const totalPrice = baseTotal + vat;
+        const calculatedTotalPrice = baseTotal + vat;
+
+        // ✅ استخدم السعر المحفوظ في قاعدة البيانات إذا كان السعر المحسوب 0
+        const finalTotalPrice = calculatedTotalPrice === 0 ? task.totalPrice : calculatedTotalPrice;
 
         res.render('editTask', {
           task: {
             ...task,
             serviceIds: selectedServiceIds,
-            totalPrice: totalPrice
+            totalPrice: finalTotalPrice
           },
           allServices,
           selectedServiceIds,
