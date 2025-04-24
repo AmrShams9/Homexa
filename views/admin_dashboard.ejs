@@ -185,8 +185,13 @@
 document.getElementById("orderForm").addEventListener("submit", async function(event) {
   event.preventDefault();
 
-  const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
-                                .map(service => service.dataset.id);
+  const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => {
+  const qtyInput = cb.closest('.service-item').querySelector('.qty-input');
+  return {
+    id: parseInt(cb.dataset.id),
+    quantity: parseInt(qtyInput?.value || 1)
+  };
+});
 
   const totalPrice = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
                           .reduce((sum, service) => sum + parseFloat(service.dataset.price), 0);
@@ -235,35 +240,37 @@ async function filterOrders() {
     console.error("خطأ في جلب الطلبات:", error);
   }
 }
+//search method
 function renderOrders(orders) {
   const ordersList = document.getElementById("ordersList");
   ordersList.innerHTML = "";
   if (!orders.length) return (ordersList.innerHTML = "<p>لا توجد طلبات مطابقة</p>");
 
   orders.forEach(order => {
-    // const servicesHTML = order.services && order.services.length ? order.services.join(' - ') : 'لا توجد خدمات';
-    const servicesHTML = order.services
-  .map(service => `${service.name} (×${service.quantity})`)
-  .join(", ");
-    const html = `
-      <div class="order">
-        <p><strong>رقم الطلب:</strong> ${order.id}</p>
-     <p><strong>تاريخ انشاء الطلب :</strong> ${order.createdAt}</p>
-        <p><strong>العميل:</strong> ${order.customerName}</p>
-        <p><strong>الموقع:</strong> <a href="${order.customerLocation}" target="_blank">عرض</a></p>
-        <p><strong>الخدمات:</strong> ${servicesHTML}</p>
-        <p><strong>وقت الخدمة:</strong> ${order.serviceTime}</p>
-        <p><strong>اليوم:</strong> ${order.serviceDate}</p>
-        <p><strong>طريقة الدفع:</strong> ${order.paymentMethod}</p>
-        <p><strong>السعر:</strong> ${order.totalPrice} SAR</p>
-        <p><strong>الحالة:</strong> ${order.status}</p>
-        <div class="button-group">
+  const servicesHTML = (order.services || [])
+    .map(s => `${s.name} (×${s.quantity})`)
+    .join(', ');
+
+  const html = `
+    <div class="order">
+      <p><strong>رقم الطلب:</strong> ${order.id}</p>
+      <p><strong>تاريخ انشاء الطلب :</strong> ${order.createdAt}</p>
+      <p><strong>العميل:</strong> ${order.customerName}</p>
+      <p><strong>الموقع:</strong> <a href="${order.customerLocation}" target="_blank">عرض</a></p>
+      <p><strong>الخدمات:</strong> ${servicesHTML}</p>
+      <p><strong>وقت الخدمة:</strong> ${order.serviceTime}</p>
+      <p><strong>اليوم:</strong> ${order.serviceDate}</p>
+      <p><strong>طريقة الدفع:</strong> ${order.paymentMethod}</p>
+      <p><strong>السعر:</strong> ${order.totalPrice} SAR</p>
+      <p><strong>الحالة:</strong> ${order.status}</p>
+      <div class="button-group">
         <button class="edit-btn" onclick="editOrder(${order.id})">✏️ تحرير</button>
         <button class="delete-btn" onclick="deleteOrder(${order.id})">🗑️ حذف</button>
-    </div>
-      </div>`;
-    ordersList.innerHTML += html;
-  });
+      </div>
+    </div>`;
+
+  ordersList.innerHTML += html;
+});
 }
 
 // جلب الطلبات النشطة وعرضها

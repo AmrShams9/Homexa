@@ -537,14 +537,15 @@ app.post('/addtask', (req, res) => {
     serviceTime,
     paymentMethod,
     totalPrice,
-    services
+    services // ✅ [{ id, quantity }]
   } = req.body;
 
   const createdByUserId = req.session?.user?.id || null;
 
   if (
     !customerPhone || !customerName || !customerLat || !customerLng ||
-    !serviceDate || !serviceTime || !paymentMethod || !totalPrice
+    !serviceDate || !serviceTime || !paymentMethod || !totalPrice ||
+    !Array.isArray(services) || services.length === 0
   ) {
     return res.status(400).json({
       success: false,
@@ -552,7 +553,7 @@ app.post('/addtask', (req, res) => {
     });
   }
 
-  const sql = `
+  const insertTaskQuery = `
     INSERT INTO tasks (
       customerPhone, customerName, customerLat, customerLng,
       serviceDate, serviceTime, paymentMethod, status,
@@ -560,7 +561,7 @@ app.post('/addtask', (req, res) => {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, 'New', ?, datetime('now'), ?)
   `;
 
-  db.run(sql, [
+  db.run(insertTaskQuery, [
     customerPhone,
     customerName,
     customerLat,
@@ -578,17 +579,21 @@ app.post('/addtask', (req, res) => {
 
     const taskId = this.lastID;
 
-    if (Array.isArray(services) && services.length > 0) {
-      const stmt = db.prepare('INSERT INTO task_services (task_id, service_id) VALUES (?, ?)');
-      services.forEach(serviceId => {
-        stmt.run(taskId, serviceId);
-      });
-      stmt.finalize();
-    }
+    const stmt = db.prepare('INSERT INTO task_services (task_id, service_id, quantity) VALUES (?, ?, ?)');
+    services.forEach(s => {
+      if (s.id && s.quantity) {
+        stmt.run(taskId, s.id, s.quantity);
+      }
+    });
+    stmt.finalize();
 
     res.json({ success: true, taskId });
   });
 });
+
+
+
+
 
   
 
@@ -1170,10 +1175,6 @@ app.get("/search-tasks", (req, res) => {
   const { name = '', status = '' } = req.query;
   const baseQuery = `SELECT * FROM tasks WHERE 1=1`;
   const conditions = [];
-  // if (status) {
-  //   conditions.push("status = ?");
-  //   params.push(status); // ← لا تعدل القيمة هنا
-  // }
   const params = [];
 
   if (name) {
@@ -1193,24 +1194,37 @@ app.get("/search-tasks", (req, res) => {
 
     const taskIds = tasks.map(t => t.id);
     const placeholders = taskIds.map(() => '?').join(',');
-    const serviceQuery = `SELECT ts.task_id, s.name FROM task_services ts JOIN services s ON ts.service_id = s.id WHERE ts.task_id IN (${placeholders})`;
+
+    const serviceQuery = `
+      SELECT ts.task_id, s.name, ts.quantity
+      FROM task_services ts
+      JOIN services s ON ts.service_id = s.id
+      WHERE ts.task_id IN (${placeholders})
+    `;
 
     db.all(serviceQuery, taskIds, (err, serviceRows) => {
       if (err) return res.status(500).json({ error: err.message });
+
       const servicesMap = {};
       serviceRows.forEach(r => {
         if (!servicesMap[r.task_id]) servicesMap[r.task_id] = [];
-        servicesMap[r.task_id].push(r.name);
+        servicesMap[r.task_id].push({
+          name: r.name,
+          quantity: r.quantity
+        });
       });
+
       const enriched = tasks.map(task => ({
         ...task,
         customerLocation: `https://www.google.com/maps?q=${task.customerLat},${task.customerLng}`,
         services: servicesMap[task.id] || []
       }));
+
       res.json(enriched);
     });
   });
 });
+
 
 const columnExists = async (tableName, columnName) => {
   return new Promise((resolve, reject) => {
