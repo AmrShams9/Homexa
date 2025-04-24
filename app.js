@@ -654,6 +654,7 @@ app.get("/gettasks", (req, res) => {
         if (!servicesMap[row.task_id]) servicesMap[row.task_id] = [];
         servicesMap[row.task_id].push(`${row.name} (×${row.quantity})`);
       });
+      
 
       const enrichedTasks = tasks.map(task => ({
         ...task,
@@ -666,6 +667,48 @@ app.get("/gettasks", (req, res) => {
     });
   });
 });
+//////////////////////////////////////////////////////////////////////////////////////
+app.get("/user-tasks", (req, res) => {
+  const userId = req.session?.user?.id;
+  if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
+
+  db.all(`SELECT * FROM tasks WHERE createdByUserId = ?`, [userId], (err, tasks) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!tasks.length) return res.json([]);
+
+    const taskIds = tasks.map(t => t.id);
+    const placeholders = taskIds.map(() => '?').join(',');
+    const serviceQuery = `
+      SELECT ts.task_id, s.name, ts.quantity
+      FROM task_services ts
+      JOIN services s ON ts.service_id = s.id
+      WHERE ts.task_id IN (${placeholders})
+    `;
+
+    db.all(serviceQuery, taskIds, (err, serviceRows) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      const servicesMap = {};
+serviceRows.forEach(row => {
+  if (!servicesMap[row.task_id]) servicesMap[row.task_id] = [];
+  servicesMap[row.task_id].push({
+    name: row.name,
+    quantity: row.quantity
+  });
+});
+
+
+      const enriched = tasks.map(task => ({
+        ...task,
+        customerLocation: `https://www.google.com/maps?q=${task.customerLat},${task.customerLng}`,
+        services: servicesMap[task.id] || []
+      }));
+
+      res.json(enriched);
+    });
+  });
+});
+
 
 
 

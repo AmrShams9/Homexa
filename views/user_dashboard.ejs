@@ -180,6 +180,36 @@
         input[type="checkbox"] { margin-left: 10px; }
         input[type="submit"] { margin-top: 20px; padding: 10px 20px; background-color: #f15a29; color: white; border: none; border-radius: 5px; cursor: pointer; }
         #totalPrice { font-size: 1.2em; color: #f15a29; }
+        .task-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px 0;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-3px);
+}
+
+.task-card p {
+  margin: 5px 0;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+.task-card a {
+  color: #f15a29;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.task-card a:hover {
+  text-decoration: underline;
+}
+
     </style>
 </head>
 <body>
@@ -249,25 +279,8 @@
 
             <button type="submit">إضافة الطلب</button>
         </form>
-        <div>
-            <h2>📋 طلباتي</h2>
-            <% if (!tasks || tasks.length === 0) { %>
-              <p>لا توجد طلبات بعد</p>
-            <% } else { %>
-              <% tasks.forEach(task => { %>
-                <div class="task-box" style="border: 1px solid #ccc; padding: 10px; margin: 10px 0; border-radius: 5px;">
-                  <p><strong>العميل:</strong> <%= task.customerName %></p>
-                  <p><strong>الخدمات:</strong> <%= task.serviceNames || 'لا توجد خدمات' %></p>
-                  <p><strong>الوقت:</strong> <%= task.serviceTime %></p>
-                  <p><strong>اليوم:</strong> <%= task.serviceDate %></p>
-                  <p><strong>الدفع:</strong> <%= task.paymentMethod %></p>
-                  <p><strong>السعر:</strong> <%= task.totalPrice %> SAR</p>
-                  <p><strong>الحالة:</strong> <%= task.status %></p>
-                  <p><a href="https://www.google.com/maps?q=<%= task.customerLat %>,<%= task.customerLng %>" target="_blank">📍 عرض الموقع</a></p>
-                </div>
-              <% }); %>
-            <% } %>
-          </div>
+        <div id="userOrders"></div>
+
     </div>
 
     
@@ -275,8 +288,13 @@
     document.getElementById("orderForm").addEventListener("submit", async function(event) {
   event.preventDefault();
 
-  const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
-                                .map(service => service.dataset.id);
+  const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => {
+  const qtyInput = cb.closest('.service-item').querySelector('.qty-input');
+  return {
+    id: parseInt(cb.dataset.id),
+    quantity: parseInt(qtyInput?.value || 1)
+  };
+});
 
   const totalPrice = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
                           .reduce((sum, service) => sum + parseFloat(service.dataset.price), 0);
@@ -476,6 +494,46 @@ async function logout() {
         console.error("فشل في جلب بيانات الحساب", err);
       }
     });
+  </script>
+  <script>
+    
+    async function fetchUserOrders() {
+    const ordersList = document.getElementById("userOrders"); // تأكد من وجود هذا العنصر في HTML
+    ordersList.innerHTML = "";
+  
+    try {
+      const res = await fetch("/user-tasks"); // أو endpoint المستخدم الخاص بك
+      const orders = await res.json();
+  
+      orders.forEach(order => {
+  const servicesHTML = (order.services || [])
+    .map(s => `${s.name} (×${s.quantity})`)
+    .join(', ');
+  
+        const html = `
+          <div class="task-card">
+            <p><strong>رقم الطلب:</strong> ${order.id}</p>
+            <p><strong>تاريخ الطلب:</strong> ${order.createdAt}</p>
+            <p><strong>العميل:</strong> ${order.customerName}</p>
+            <p><strong>الموقع:</strong> <a href="${order.customerLocation}" target="_blank">عرض</a></p>
+            <p><strong>الخدمات:</strong> ${servicesHTML || "لا توجد خدمات"}</p>
+            <p><strong>وقت الخدمة:</strong> ${order.serviceTime}</p>
+            <p><strong>اليوم:</strong> ${order.serviceDate}</p>
+            <p><strong>طريقة الدفع:</strong> ${order.paymentMethod}</p>
+            <p><strong>السعر:</strong> ${order.totalPrice} SAR</p>
+            <p><strong>الحالة:</strong> ${order.status}</p>
+          </div>
+        `;
+  
+        ordersList.innerHTML += html;
+      });
+    } catch (error) {
+      console.error("فشل في جلب الطلبات:", error);
+      ordersList.innerHTML = "<p>حدث خطأ أثناء تحميل الطلبات.</p>";
+    }
+  }
+  window.addEventListener('DOMContentLoaded', fetchUserOrders);
+  
   </script>
 </body>
 </html>
