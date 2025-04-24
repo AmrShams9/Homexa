@@ -633,7 +633,7 @@ app.get("/gettasks", (req, res) => {
     const placeholders = taskIds.map(() => '?').join(',');
 
     const serviceQuery = `
-      SELECT ts.task_id, s.name, ts.quantity
+      SELECT ts.task_id, s.name, s.price, ts.quantity
       FROM task_services ts 
       JOIN services s ON ts.service_id = s.id 
       WHERE ts.task_id IN (${placeholders})
@@ -648,25 +648,25 @@ app.get("/gettasks", (req, res) => {
         });
       }
 
-      // ربط الخدمات بكل طلب
+      // ربط الخدمات بكل طلب مع الكمية والسعر
       const servicesMap = {};
       serviceRows.forEach(row => {
         if (!servicesMap[row.task_id]) servicesMap[row.task_id] = [];
-        servicesMap[row.task_id].push(`${row.name} (×${row.quantity})`);
+        const totalPrice = row.price * row.quantity;
+servicesMap[row.task_id].push(`${row.name} (×${row.quantity}) - ${totalPrice.toFixed(2)} SAR`);
       });
-      
 
       const enrichedTasks = tasks.map(task => ({
         ...task,
         customerLocation: `https://www.google.com/maps?q=${task.customerLat},${task.customerLng}`,
-         services: servicesMap[task.id] || [] 
-        
+        services: servicesMap[task.id] || []
       }));
 
       res.json(enrichedTasks);
     });
   });
 });
+
 //////////////////////////////////////////////////////////////////////////////////////
 app.get("/user-tasks", (req, res) => {
   const userId = req.session?.user?.id;
@@ -678,8 +678,9 @@ app.get("/user-tasks", (req, res) => {
 
     const taskIds = tasks.map(t => t.id);
     const placeholders = taskIds.map(() => '?').join(',');
+    
     const serviceQuery = `
-      SELECT ts.task_id, s.name, ts.quantity
+      SELECT ts.task_id, s.name, ts.quantity, s.price
       FROM task_services ts
       JOIN services s ON ts.service_id = s.id
       WHERE ts.task_id IN (${placeholders})
@@ -689,14 +690,15 @@ app.get("/user-tasks", (req, res) => {
       if (err) return res.status(500).json({ error: err.message });
 
       const servicesMap = {};
-serviceRows.forEach(row => {
-  if (!servicesMap[row.task_id]) servicesMap[row.task_id] = [];
-  servicesMap[row.task_id].push({
-    name: row.name,
-    quantity: row.quantity
-  });
-});
-
+      serviceRows.forEach(row => {
+        if (!servicesMap[row.task_id]) servicesMap[row.task_id] = [];
+        const totalPrice = row.price * row.quantity;
+        servicesMap[row.task_id].push({
+          name: row.name,
+          quantity: row.quantity,
+          totalPrice: totalPrice.toFixed(2)
+        });
+      });
 
       const enriched = tasks.map(task => ({
         ...task,

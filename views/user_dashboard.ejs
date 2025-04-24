@@ -507,7 +507,7 @@ async function logout() {
   
       orders.forEach(order => {
   const servicesHTML = (order.services || [])
-    .map(s => `${s.name} (×${s.quantity})`)
+    .map(s => `${s.name} (×${s.quantity}) = ${s.totalPrice} SAR`)
     .join(', ');
   
         const html = `

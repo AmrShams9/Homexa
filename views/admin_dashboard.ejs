@@ -248,7 +248,7 @@ function renderOrders(orders) {
 
   orders.forEach(order => {
   const servicesHTML = (order.services || [])
-    .map(s => `${s.name} (×${s.quantity})`)
+    .map(s => `${s.name} (×${s.quantity}) (${s.price})`)
     .join(', ');
 
   const html = `
