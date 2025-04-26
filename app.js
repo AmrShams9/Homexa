@@ -55,7 +55,10 @@ db.run(`
     paymentMethod TEXT NOT NULL,
     status TEXT CHECK(status IN ('InProgress', 'On Hold', 'completed', 'canceled', 'Assigned', 'New')) DEFAULT 'New',
     totalPrice REAL NOT NULL DEFAULT 0,
-    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    createdByUserId INTEGER,
+FOREIGN KEY (createdByUserId) REFERENCES users(id)
    
     )
 `);
@@ -194,48 +197,7 @@ db.run("INSERT OR IGNORE INTO users (fullName, username, supplier, branch, phone
 app.get("/", (req, res) => {
     res.render("Login_page");
 });
-// app.get("/login", (req, res) => {
-//     res.render("login_page");
-// });
-// app.get("/test2", (req, res) => {
-//   db.all("SELECT * FROM time_slots ORDER BY id", (err, rows) => {
-//     if (err) {
-//       return res.status(500).send("فشل في جلب الفترات الزمنية");
-//     }
 
-//     res.render("test2", { slots: rows });
-//   });
-// });
-
-// app.get("/test2", (req, res) => {
-//   const user = req.session?.user;
-//   if (!user) return res.redirect("/");
-
-//   const userId = user.id;
-
-//   db.all(`
-//     SELECT t.*, GROUP_CONCAT(s.name, ', ') AS serviceNames
-//     FROM tasks t
-//     LEFT JOIN task_services ts ON t.id = ts.task_id
-//     LEFT JOIN services s ON ts.service_id = s.id
-//     WHERE t.createdByUserId = ?
-//     GROUP BY t.id
-//     ORDER BY t.createdAt DESC
-//   `, [userId], (err, tasks) => {
-//     if (err) return res.status(500).send("فشل في تحميل الطلبات");
-
-//     db.all(`SELECT * FROM time_slots ORDER BY id`, (err2, slots) => {
-//       if (err2) return res.status(500).send("فشل في تحميل الفترات الزمنية");
-
-//       res.render("test2", { tasks, timeSlots: slots });
-//     });
-//   });
-// });
-
-// // صفحة تسجيل الدخول
-// app.get("/login_page", (req, res) => {
-//     res.render("Login_Page");
-// });
 app.get("/user_dashboard", (req, res) => {
   const user = req.session.user;
   if (!user) return res.redirect("/");
@@ -541,6 +503,7 @@ app.post('/addtask', (req, res) => {
   } = req.body;
 
   const createdByUserId = req.session?.user?.id || null;
+  const createdBySupplier = req.session?.user?. username || 'Admin';
 
   if (
     !customerPhone || !customerName || !customerLat || !customerLng ||
@@ -557,8 +520,8 @@ app.post('/addtask', (req, res) => {
     INSERT INTO tasks (
       customerPhone, customerName, customerLat, customerLng,
       serviceDate, serviceTime, paymentMethod, status,
-      totalPrice, createdAt, createdByUserId
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'New', ?, datetime('now'), ?)
+      totalPrice, createdAt, createdByUserId,createdBySupplier
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'New', ?, datetime('now'), ?,?)
   `;
 
   db.run(insertTaskQuery, [
@@ -570,7 +533,8 @@ app.post('/addtask', (req, res) => {
     serviceTime,
     paymentMethod,
     totalPrice,
-    createdByUserId
+    createdByUserId,
+    createdBySupplier
   ], function (err) {
     if (err) {
       console.error("DB Error:", err);
@@ -588,6 +552,31 @@ app.post('/addtask', (req, res) => {
     stmt.finalize();
 
     res.json({ success: true, taskId });
+  });
+});
+
+app.get("/search-by-creator", (req, res) => {
+  const { creatorName = '' } = req.query;
+
+  if (!creatorName) {
+    return res.status(400).json({ success: false, message: "يجب إدخال اسم منشئ البحث" });
+  }
+
+  const query = `
+    SELECT t.*, u.fullName AS creatorName
+    FROM tasks t
+    LEFT JOIN users u ON t.createdByUserId = u.id
+    WHERE u.fullName LIKE ?
+    ORDER BY t.createdAt DESC
+  `;
+
+  db.all(query, [`%${creatorName}%`], (err, tasks) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ success: false, message: "خطأ في قاعدة البيانات" });
+    }
+
+    res.json({ success: true, tasks });
   });
 });
 
@@ -837,197 +826,6 @@ app.get('/edit_task/:id', (req, res) => {
     });
   });
 });
-
-
-
-  
-  
-  
-  //POST route to handle task updates - Fixed to match your schema
-  // app.post('/update_task/:id', (req, res) => {
-  //   const taskId = req.params.id;
-  
-  //   let {
-  //     customerPhone,
-  //     customerName,
-  //     customerLat,
-  //     customerLng,
-  //     serviceTime,
-  //     paymentMethod,
-  //     status, 
-  //     services // يجب أن تكون مصفوفة من أرقام
-  //   } = req.body;
-
-  //   console.log(req.body);
-  
-  //   // ✅ حاول تحويلها إلى مصفوفة إذا كانت موجودة كسلسلة
-  //   if (typeof services === 'string') {
-  //     services = [services]; // إذا كانت خدمة واحدة فقط
-  //   }
-  
-  //   // if (!Array.isArray(services) || services.length === 0) {
-  //   //   return res.status(400).json({
-  //   //     success: false,
-  //   //     message: "يجب اختيار خدمة واحدة على الأقل"
-  //   //   });
-  //   // }
-  
-  //   // ✅ تحقق من الحقول المهمة
-  //   if (!customerPhone || !customerName || !customerLat || !customerLng || !serviceTime || !paymentMethod) {
-  //     return res.status(400).json({
-  //       success: false,
-  //       message: "جميع الحقول مطلوبة"
-  //     });
-  //   }
-  
-  //   const updateTaskSql = `
-  //     UPDATE tasks
-  //     SET
-  //       customerPhone = ?,
-  //       customerName = ?,
-  //       customerLat = ?,
-  //       customerLng = ?,
-  //       serviceTime = ?,
-  //       paymentMethod = ?,
-  //       status = ? WHERE id = ?
-  //   `;
-  
-  //   db.run(updateTaskSql, [
-  //     customerPhone,
-  //     customerName,
-  //     customerLat,
-  //     customerLng,
-  //     serviceTime,
-  //     paymentMethod,
-  //     status || 'Assigned',
-      
-  //     taskId
-  //   ], function (err) {
-  //     if (err) {
-  //       console.error("Error updating task:", err);
-  //       return res.status(500).json({ success: false, message: "فشل تحديث الطلب", error: err.message });
-  //     }
-  //     else{
-  //        return res.render("admin_dashboard");
-  //     }
-  
-  // //     // 🧹 حذف الخدمات القديمة
-  // //   //   db.run(`DELETE FROM task_services WHERE task_id = ?`, [taskId], (err) => {
-  // //   //     if (err) {
-  // //   //       console.error("Error clearing old services:", err);
-  // //   //       return res.status(500).json({ success: false, message: "فشل حذف الخدمات القديمة", error: err.message });
-  // //   //     }
-  
-  // //   //     // ➕ إضافة الخدمات الجديدة
-  // //   //     const insertStmt = db.prepare(`INSERT INTO task_services (task_id, service_id) VALUES (?, ?)`);
-  // //   //     services.forEach(serviceId => insertStmt.run(taskId, serviceId));
-  // //   //     insertStmt.finalize();
-  
-  // //   //     // 💰 حساب السعر الإجمالي
-  // //   //     const placeholders = services.map(() => '?').join(',');
-  // //   //     db.get(`SELECT SUM(price) AS total FROM services WHERE id IN (${placeholders})`, services, (err, result) => {
-  // //   //       if (err) {
-  // //   //         console.error("Error calculating total:", err);
-  // //   //         return res.status(500).json({ success: false, message: "فشل في حساب السعر", error: err.message });
-  // //   //       }
-  
-  // //   //       const totalPrice = result.total || 0;
-  
-  // //   //       db.run(`UPDATE tasks SET totalPrice = ? WHERE id = ?`, [totalPrice, taskId], (err) => {
-  // //   //         if (err) {
-  // //   //           console.error("Error updating total price:", err);
-  // //   //           return res.status(500).json({ success: false, message: "تم التعديل ولكن لم يتم تحديث السعر", error: err.message });
-  // //   //         }
-  
-  // //   //         return res.json({ success: true, message: "تم تحديث الطلب بنجاح" });
-  // //   //       });
-  // //   //     });
-  // //   //   }); //delete
-  //   });
-  // });
-  // // app.post('/update_task/:id', (req, res) => {
-  // //   const taskId = req.params.id;
-  
-  // //   let {
-  // //     customerPhone,
-  // //     customerName,
-  // //     customerLat,
-  // //     customerLng,
-  // //     serviceTime,
-  // //     paymentMethod,
-  // //     status,
-  // //     services, // [{ id: 3, quantity: 2 }, ...]
-  // //     totalPrice
-  // //   } = req.body;
-  
-  // //   // ⚠️ تأكد من أن الخدمات مصفوفة من كائنات
-  // //   if (typeof services === 'string') {
-  // //     try {
-  // //       services = JSON.parse(services);
-  // //     } catch {
-  // //       services = [{ id: services, quantity: 1 }];
-  // //     }
-  // //   }
-  
-  // //   if (!Array.isArray(services) || services.length === 0) {
-  // //     return res.status(400).json({
-  // //       success: false,
-  // //       message: "يجب اختيار خدمة واحدة على الأقل"
-  // //     });
-  // //   }
-  
-  // //   if (!customerPhone || !customerName || !customerLat || !customerLng || !serviceTime || !paymentMethod) {
-  // //     return res.status(400).json({
-  // //       success: false,
-  // //       message: "جميع الحقول مطلوبة"
-  // //     });
-  // //   }
-  
-  // //   const updateTaskSql = `
-  // //     UPDATE tasks SET
-  // //       customerPhone = ?,
-  // //       customerName = ?,
-  // //       customerLat = ?,
-  // //       customerLng = ?,
-  // //       serviceTime = ?,
-  // //       paymentMethod = ?,
-  // //       status = ?,
-  // //       totalPrice = ?
-  // //     WHERE id = ?
-  // //   `;
-  
-  // //   db.run(updateTaskSql, [
-  // //     customerPhone,
-  // //     customerName,
-  // //     customerLat,
-  // //     customerLng,
-  // //     serviceTime,
-  // //     paymentMethod,
-  // //     status || 'Assigned',
-  // //     totalPrice || 0,
-  // //     taskId
-  // //   ], function (err) {
-  // //     if (err) {
-  // //       console.error("Error updating task:", err);
-  // //       return res.status(500).json({ success: false, message: "فشل تحديث الطلب", error: err.message });
-  // //     }
-  
-  // //     // حذف الخدمات القديمة
-  // //     db.run(`DELETE FROM task_services WHERE task_id = ?`, [taskId], err => {
-  // //       if (err) {
-  // //         return res.status(500).json({ success: false, message: "فشل حذف الخدمات السابقة" });
-  // //       }
-  
-  // //       const insertStmt = db.prepare(`INSERT INTO task_services (task_id, service_id, quantity) VALUES (?, ?, ?)`);
-  // //       services.forEach(service => {
-  // //         insertStmt.run(taskId, service.id, service.quantity || 1);
-  // //       });
-  // //       insertStmt.finalize();
-  
-  // //       res.redirect("/admin_dashboard"); // ✅ يمكنك تغييره حسب ما تريد
-  // //     });
-  // //   });
-  // // });
   app.post('/update_task/:id', (req, res) => {
     const taskId = req.params.id;
     
@@ -1129,6 +927,23 @@ app.get('/edit_task/:id', (req, res) => {
       });
     });
   });
+  //////////////////////////////
+  app.get("/orders-by-supplier", (req, res) => {
+    const supplier = req.query.supplier;
+  
+    if (!supplier) return res.status(400).send("يجب تحديد اسم المورد");
+  
+    db.all(`
+      SELECT * FROM tasks
+      WHERE createdByUserId IN (SELECT id FROM users WHERE supplier = ?)
+      ORDER BY createdAt DESC
+    `, [supplier], (err, tasks) => {
+      if (err) return res.status(500).send("خطأ في قاعدة البيانات");
+  
+      res.render("orders_by_supplier", { supplier, tasks });
+    });
+  });
+  
   
   
   
@@ -1218,22 +1033,29 @@ app.get('/search-order/:phone', (req, res) => {
 /////////////////////////////////////////////////
 app.get("/search-tasks", (req, res) => {
   const { name = '', status = '' } = req.query;
-  const baseQuery = `SELECT * FROM tasks WHERE 1=1`;
+
+  let baseQuery = `
+    SELECT t.*, u.supplier AS createdBySupplier
+    FROM tasks t
+    LEFT JOIN users u ON t.createdByUserId = u.id
+    WHERE 1=1
+  `;
   const conditions = [];
   const params = [];
 
   if (name) {
-    conditions.push("customerName LIKE ?");
+    conditions.push("u.supplier LIKE ?");
     params.push(`%${name}%`);
   }
+
   if (status) {
-    conditions.push("status = ?");
-    params.push(status);
+    conditions.push("LOWER(t.status) = LOWER(?)");
+    params.push(status.toLowerCase());
   }
 
-  const query = [baseQuery, ...conditions.map(c => `AND ${c}`)].join(" ");
+  const finalQuery = [baseQuery, ...conditions.map(c => `AND ${c}`)].join(" ");
 
-  db.all(query, params, (err, tasks) => {
+  db.all(finalQuery, params, (err, tasks) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!tasks.length) return res.json([]);
 
@@ -1241,32 +1063,31 @@ app.get("/search-tasks", (req, res) => {
     const placeholders = taskIds.map(() => '?').join(',');
 
     const serviceQuery = `
-      SELECT ts.task_id, s.name, ts.quantity
-      FROM task_services ts
-      JOIN services s ON ts.service_id = s.id
-      WHERE ts.task_id IN (${placeholders})
-    `;
+  SELECT ts.task_id, s.name, s.price, ts.quantity
+  FROM task_services ts
+  JOIN services s ON ts.service_id = s.id
+  WHERE ts.task_id IN (${placeholders})
+`;
 
-    db.all(serviceQuery, taskIds, (err, serviceRows) => {
-      if (err) return res.status(500).json({ error: err.message });
+db.all(serviceQuery, taskIds, (err, serviceRows) => {
+  if (err) return res.status(500).json({ error: err.message });
 
-      const servicesMap = {};
-      serviceRows.forEach(r => {
-        if (!servicesMap[r.task_id]) servicesMap[r.task_id] = [];
-        servicesMap[r.task_id].push({
-          name: r.name,
-          quantity: r.quantity
-        });
-      });
+  const servicesMap = {};
+  serviceRows.forEach(r => {
+    if (!servicesMap[r.task_id]) servicesMap[r.task_id] = [];
+    const totalServicePrice = (r.price || 0) * (r.quantity || 1);
+    servicesMap[r.task_id].push(`${r.name} (×${r.quantity}) - ${totalServicePrice.toFixed(2)} SAR`);
+  });
 
-      const enriched = tasks.map(task => ({
-        ...task,
-        customerLocation: `https://www.google.com/maps?q=${task.customerLat},${task.customerLng}`,
-        services: servicesMap[task.id] || []
-      }));
+  const enriched = tasks.map(task => ({
+    ...task,
+    customerLocation: `https://www.google.com/maps?q=${task.customerLat},${task.customerLng}`,
+    services: servicesMap[task.id] || []
+  }));
 
-      res.json(enriched);
-    });
+  res.json(enriched);
+});
+
   });
 });
 
@@ -1300,6 +1121,10 @@ const addColumnIfNotExists = async (table, column, type) => {
 
 (async () => {
   await addColumnIfNotExists("task_services", "quantity", "INTEGER");
+})();
+
+(async () => {
+  await addColumnIfNotExists("tasks", "createdBySupplier", "TEXT");
 })();
 //////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////

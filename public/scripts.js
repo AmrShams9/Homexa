@@ -36,21 +36,21 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Error adding user:", error);
         }
     });
-    function addUserToTable(user) {
-        const usersTable = document.getElementById("usersTable");
-        const row = `<tr>
-            <td>${user.fullName}</td>
-            <td>${user.username}</td>
-            <td>${user.supplier}</td>
-            <td>${user.branch}</td>
-            <td>${user.phone}</td>
-            <td>${user.email}</td>
-            <td><a href="/editUser" class="edit-btn">✏️ تعديل</a></td>
-        </tr>`;
-        usersTable.innerHTML += row;
-    }
-    // استدعاء fetchOrders عند تحميل الصفحة
-window.addEventListener('DOMContentLoaded', fetchOrders);
+//     function addUserToTable(user) {
+//         const usersTable = document.getElementById("usersTable");
+//         const row = `<tr>
+//             <td>${user.fullName}</td>
+//             <td>${user.username}</td>
+//             <td>${user.supplier}</td>
+//             <td>${user.branch}</td>
+//             <td>${user.phone}</td>
+//             <td>${user.email}</td>
+//             <td><a href="/editUser" class="edit-btn">✏️ تعديل</a></td>
+//         </tr>`;
+//         usersTable.innerHTML += row;
+//     }
+//     // استدعاء fetchOrders عند تحميل الصفحة
+// window.addEventListener('DOMContentLoaded', fetchOrders);
 
 
     function fetchUsers() {
@@ -65,6 +65,7 @@ window.addEventListener('DOMContentLoaded', fetchOrders);
                     <th>رقم الجوال</th>
                     <th>البريد الإلكتروني</th>
                     <th>تعديل</th>
+                     <th>الإجراءات</th> <!-- ✅ بدل تعديل وفاضي، خليها خانة واحدة -->
                 </tr>`;
     
                 data.users.forEach(user => {
@@ -75,7 +76,9 @@ window.addEventListener('DOMContentLoaded', fetchOrders);
                         <td>${user.branch}</td>
                         <td>${user.phone}</td>
                         <td>${user.email}</td>
-                        <td><a href="/editUser/${user.id}" class="edit-btn">✏️ تعديل</a></td>
+                        <td><a href="/editUser/${user.id}" class="edit-btn">✏️ تعديل</a>
+                        </td>
+                        <td><a href="/orders-by-supplier?supplier=${encodeURIComponent(user.supplier)}" class="edit-btn">📦 عرض الطلبات</a></td>
                     </tr>`;
                     usersTable.innerHTML += row;
                 });
