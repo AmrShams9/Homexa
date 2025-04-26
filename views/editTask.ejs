@@ -227,64 +227,64 @@ document.addEventListener("input", function (event) {
     // });
 
     document.getElementById("editTaskForm").addEventListener("submit", async function (event) {
-    event.preventDefault();
+  event.preventDefault();
 
-    const form = document.getElementById("editTaskForm");
-    const formData = new FormData(form);
+  const form = document.getElementById("editTaskForm");
+  const formData = new FormData(form);
 
-    const services = [];
-    document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-      const serviceId = cb.dataset.id;
-      const qty = cb.closest(".service-item").querySelector(".qty-input").value || 1;
-      services.push({ id: serviceId, quantity: parseInt(qty) });
+  const services = [];
+  document.querySelectorAll('input[type="checkbox"][name="services"]:checked').forEach(cb => {
+    const qtyInput = cb.closest("tr").querySelector(".qty-input");
+    services.push({ id: parseInt(cb.dataset.id), quantity: parseInt(qtyInput?.value || 1) });
+  });
+
+  if (!services.length) {
+    alert("يجب اختيار خدمة واحدة على الأقل.");
+    return;
+  }
+
+  const baseTotal = services.reduce((sum, s) => {
+    const checkbox = document.querySelector(`input[data-id="${s.id}"]`);
+    return sum + parseFloat(checkbox.dataset.price) * s.quantity;
+  }, 0);
+
+  const vat = baseTotal * 0.15;
+  const total = baseTotal + vat;
+
+  const taskId = "<%= task.id %>";
+
+  const payload = {
+    customerPhone: formData.get("customerPhone"),
+    customerName: formData.get("customerName"),
+    customerLat: parseFloat(formData.get("customerLat")),
+    customerLng: parseFloat(formData.get("customerLng")),
+    serviceTime: formData.get("serviceTime"),
+    paymentMethod: formData.get("paymentMethod"),
+    status: formData.get("status"),
+    totalPrice: total,
+    services: services
+  };
+
+  try {
+    const response = await fetch(`/edit_task/${taskId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
     });
 
-    if (!services.length) {
-      alert("يجب اختيار خدمة واحدة على الأقل.");
-      return;
+    const result = await response.json();
+    if (response.ok && result.success) {
+      alert("تم حفظ التعديلات بنجاح!");
+      window.location.href = "/admin_dashboard";
+    } else {
+      alert("فشل التحديث: " + (result.message || "خطأ غير معروف"));
     }
+  } catch (err) {
+    console.error("Error:", err);
+    alert("حدث خطأ أثناء إرسال الطلب");
+  }
+});
 
-    const baseTotal = services.reduce((sum, s) => {
-      const checkbox = document.querySelector(`input[data-id="${s.id}"]`);
-      return sum + parseFloat(checkbox.dataset.price) * s.quantity;
-    }, 0);
-
-    const vat = baseTotal * 0.15;
-    const total = baseTotal + vat;
-
-    const taskId = "<%= task.id %>";
-
-    const payload = {
-      customerPhone: formData.get("customerPhone"),
-      customerName: formData.get("customerName"),
-      customerLat: parseFloat(formData.get("customerLat")),
-      customerLng: parseFloat(formData.get("customerLng")),
-      serviceTime: formData.get("serviceTime"),
-      paymentMethod: formData.get("paymentMethod"),
-      status: formData.get("status"),
-      totalPrice: total,
-      services: services
-    };
-
-    try {
-      const response = await fetch(`/edit_task/${taskId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      const result = await response.json();
-      if (response.ok && result.success) {
-        alert("تم حفظ التعديلات بنجاح!");
-        window.location.href = "/admin_dashboard";
-      } else {
-        alert("فشل التحديث: " + (result.message || "خطأ غير معروف"));
-      }
-    } catch (err) {
-      console.error("Error:", err);
-      alert("حدث خطأ أثناء إرسال الطلب");
-    }
-  });
   
 
 //     function updateTotalPrice() {

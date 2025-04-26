@@ -940,9 +940,38 @@ app.get('/edit_task/:id', (req, res) => {
     `, [supplier], (err, tasks) => {
       if (err) return res.status(500).send("خطأ في قاعدة البيانات");
   
-      res.render("orders_by_supplier", { supplier, tasks });
+      if (!tasks.length) return res.render("orders_by_supplier", { supplier, tasks: [] });
+  
+      const taskIds = tasks.map(t => t.id);
+      const placeholders = taskIds.map(() => '?').join(',');
+  
+      const serviceQuery = `
+        SELECT ts.task_id, s.name, ts.quantity, s.price
+        FROM task_services ts
+        JOIN services s ON ts.service_id = s.id
+        WHERE ts.task_id IN (${placeholders})
+      `;
+  
+      db.all(serviceQuery, taskIds, (err, serviceRows) => {
+        if (err) return res.status(500).send("فشل في جلب الخدمات");
+  
+        const servicesMap = {};
+        serviceRows.forEach(row => {
+          if (!servicesMap[row.task_id]) servicesMap[row.task_id] = [];
+          const totalPrice = (row.price || 0) * (row.quantity || 1);
+          servicesMap[row.task_id].push(`${row.name} (×${row.quantity}) - ${totalPrice.toFixed(2)} SAR`);
+        });
+  
+        const enrichedTasks = tasks.map(task => ({
+          ...task,
+          serviceNames: servicesMap[task.id] ? servicesMap[task.id].join(', ') : "لا توجد خدمات"
+        }));
+  
+        res.render("orders_by_supplier", { supplier, tasks: enrichedTasks });
+      });
     });
   });
+  
   
   
   

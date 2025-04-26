@@ -186,27 +186,26 @@
 document.getElementById("orderForm").addEventListener("submit", async function(event) {
   event.preventDefault();
 
-  const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => {
-  const qtyInput = cb.closest('.service-item').querySelector('.qty-input');
-  return {
-    id: parseInt(cb.dataset.id),
-    quantity: parseInt(qtyInput?.value || 1)
-  };
-});
+  const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"][name="services"]:checked')).map(cb => {
+    const qtyInput = cb.closest('tr').querySelector('.qty-input');
+    return {
+      id: parseInt(cb.dataset.id),
+      quantity: parseInt(qtyInput?.value || 1)
+    };
+  });
 
-  const totalPrice = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
-                          .reduce((sum, service) => sum + parseFloat(service.dataset.price), 0);
+  const totalPrice = parseFloat(document.getElementById("totalPrice").innerText);
 
   const orderData = {
     customerPhone: document.getElementById("customerPhone").value,
     customerName: document.getElementById("customerName").value,
     customerLat: parseFloat(document.getElementById("customerLat").value),
     customerLng: parseFloat(document.getElementById("customerLng").value),
-    serviceDate: document.getElementById("serviceDate").value, // ✅ added this
+    serviceDate: document.getElementById("serviceDate").value,
     serviceTime: document.getElementById("serviceTime").value,
     paymentMethod: document.getElementById("paymentMethod").value,
-    totalPrice: parseFloat(document.getElementById("totalPrice").innerText),
-    services: selectedServices // ✅ only one definition
+    totalPrice: totalPrice,
+    services: selectedServices
   };
 
   try {
@@ -221,6 +220,8 @@ document.getElementById("orderForm").addEventListener("submit", async function(e
       alert("تم إرسال الطلب بنجاح!");
       document.getElementById("orderForm").reset();
       document.getElementById("totalPrice").innerText = "0";
+      document.getElementById("baseTotal").innerText = "0";
+      document.getElementById("vatAmount").innerText = "0";
     } else {
       alert("حدث خطأ: " + (result.error || result.message));
     }
@@ -229,6 +230,7 @@ document.getElementById("orderForm").addEventListener("submit", async function(e
     alert("حدث خطأ أثناء إرسال الطلب.");
   }
 });
+
 async function filterOrders() {
   const name = document.getElementById("searchName").value.trim();
   const status = document.getElementById("statusFilter").value;
