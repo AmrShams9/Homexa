@@ -1,149 +1,127 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختيار الخدمات</title>
-    <style>
-        .dropdown-section { border: 1px solid #ccc; border-radius: 8px; margin-bottom: 20px; padding: 10px; background-color: #fff; }
-        .dropdown-header { font-weight: bold; cursor: pointer; margin-bottom: 10px; color: #34507c; display: flex; justify-content: space-between; align-items: center; }
-        .dropdown-header span.arrow { font-size: 18px; transition: transform 0.2s; }
-        .dropdown-content { display: none; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 8px; border: 1px solid #ddd; text-align: center; }
-        .qty-input { width: 60px; }
-    </style>
-    <script>
-      window.preSelectedServiceQuantities = window.preSelectedServiceQuantities || {}; // تأكيد وجود الكميات المحددة سابقاً
-    </script>
-</head>
-<body>
+<div id="services-container">
+  <table id="servicesTable" class="full-width-table">
+    <thead>
+      <tr>
+        <th>التصنيف</th>
+        <th>الخدمة</th>
+        <th>السعر</th>
+        <th>الكمية</th>
+        <th>الإجمالي</th>
+      </tr>
+    </thead>
+    <tbody id="servicesBody">
+      <!-- الصفوف ستضاف هنا -->
+    </tbody>
+  </table>
+  <button id="addServiceBtn" type="button" class="btn btn-success mt-3">➕ إضافة خدمة</button>
+</div>
 
-<div id="services-container">جارٍ تحميل الخدمات...</div>
+<style>
+  .full-width-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  th, td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ccc;
+  }
+  .qty-input {
+    width: 60px;
+  }
+</style>
 
 <script>
-async function loadServices() {
-  const container = document.getElementById("services-container");
-  try {
-    const res = await fetch("/api/services");
-    const data = await res.json();
+  let servicesData = {}; // يتم تحميل الخدمات هنا
 
-    container.innerHTML = "";
-
-    for (const category in data) {
-      const section = document.createElement("div");
-      section.className = "dropdown-section";
-
-      const header = document.createElement("div");
-      header.className = "dropdown-header";
-      const arrow = document.createElement("span");
-      arrow.className = "arrow";
-      arrow.innerHTML = "⬇️";
-
-      header.innerHTML = `<span>📂 ${category}</span>`;
-      header.appendChild(arrow);
-
-      const content = document.createElement("div");
-      content.className = "dropdown-content";
-
-      header.onclick = () => {
-        const isVisible = content.style.display === "block";
-        content.style.display = isVisible ? "none" : "block";
-        arrow.innerHTML = isVisible ? "⬇️" : "⬆️";
-      };
-
-      const table = document.createElement("table");
-      table.innerHTML = `
-        <thead>
-          <tr>
-            <th>الخدمة</th>
-            <th>سعر الوحدة</th>
-            <th>الكمية</th>
-            <th>الإجمالي</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      `;
-
-      const tbody = table.querySelector("tbody");
-
-      function addServiceRow(service) {
-        const row = document.createElement("tr");
-        const preSelectedQty = window.preSelectedServiceQuantities[service.id] || 1;
-        const isChecked = service.id in window.preSelectedServiceQuantities;
-
-        row.innerHTML = `
-          <td>
-            <input type="checkbox" name="services" value="${service.id}" data-id="${service.id}" data-price="${service.price}" ${isChecked ? 'checked' : ''}>
-            ${service.name}
-          </td>
-          <td><span class="unit-price">${parseFloat(service.price).toFixed(2)}</span> ريال</td>
-          <td><input type="number" class="qty-input" min="1" value="${preSelectedQty}" ${isChecked ? '' : 'disabled'}></td>
-          <td><span class="line-total">0.00</span> ريال</td>
-        `;
-
-        tbody.appendChild(row);
-
-        const checkbox = row.querySelector('input[type="checkbox"]');
-        const qtyInput = row.querySelector('.qty-input');
-        const lineTotal = row.querySelector('.line-total');
-
-        function updateLineTotal() {
-          const base = parseFloat(checkbox.dataset.price);
-          const qty = parseInt(qtyInput.value || 1);
-          const total = checkbox.checked ? base * qty : 0;
-          lineTotal.textContent = total.toFixed(2);
-          calculateOrderTotals();
-        }
-
-        checkbox.addEventListener("change", () => {
-          qtyInput.disabled = !checkbox.checked;
-          if (!checkbox.checked) qtyInput.value = 1;
-          updateLineTotal();
-        });
-
-        qtyInput.addEventListener("input", () => {
-          if (parseInt(qtyInput.value) < 1) qtyInput.value = 1;
-          updateLineTotal();
-        });
-
-        updateLineTotal();
-      }
-
-      data[category].forEach(service => addServiceRow(service));
-
-      content.appendChild(table);
-      section.appendChild(header);
-      section.appendChild(content);
-      container.appendChild(section);
+  async function loadServicesData() {
+    try {
+      const res = await fetch("/api/services");
+      servicesData = await res.json();
+    } catch (err) {
+      console.error("فشل تحميل الخدمات", err);
     }
-  } catch (err) {
-    container.innerHTML = "<p style='color: red;'>فشل تحميل الخدمات</p>";
-    console.error("Error loading services:", err);
   }
-}
 
-function calculateOrderTotals() {
-  let baseTotal = 0;
+  function createServiceRow() {
+    const tr = document.createElement("tr");
 
-  document.querySelectorAll('input[type="checkbox"]:checked').forEach(service => {
-    const container = service.closest("tr");
-    const qtyInput = container.querySelector(".qty-input");
-    const quantity = parseInt(qtyInput?.value || 1);
-    const price = parseFloat(service.dataset.price);
-    baseTotal += price * quantity;
-  });
+    // قائمة التصنيفات
+    const categorySelect = document.createElement("select");
+    categorySelect.innerHTML = `<option value="">اختر تصنيف</option>`;
+    for (const category in servicesData) {
+      categorySelect.innerHTML += `<option value="${category}">${category}</option>`;
+    }
 
-  const vat = baseTotal * 0.15;
-  const grandTotal = baseTotal + vat;
+    const serviceSelect = document.createElement("select");
+    serviceSelect.innerHTML = `<option value="">اختر خدمة</option>`;
+    serviceSelect.disabled = true;
 
-  if(document.getElementById('baseTotal')) document.getElementById('baseTotal').innerText = baseTotal.toFixed(2);
-  if(document.getElementById('vatAmount')) document.getElementById('vatAmount').innerText = vat.toFixed(2);
-  if(document.getElementById('totalPrice')) document.getElementById('totalPrice').innerText = grandTotal.toFixed(2);
-}
+    const priceCell = document.createElement("span");
+    priceCell.textContent = "0.00";
 
-loadServices();
+    const qtyInput = document.createElement("input");
+    qtyInput.type = "number";
+    qtyInput.value = 1;
+    qtyInput.min = 1;
+    qtyInput.className = "qty-input";
+    qtyInput.disabled = true;
+
+    const totalCell = document.createElement("span");
+    totalCell.textContent = "0.00";
+
+    categorySelect.addEventListener("change", () => {
+      const selectedCategory = categorySelect.value;
+      serviceSelect.innerHTML = `<option value="">اختر خدمة</option>`;
+
+      if (selectedCategory && servicesData[selectedCategory]) {
+        servicesData[selectedCategory].forEach(service => {
+          serviceSelect.innerHTML += `<option value="${service.id}" data-price="${service.price}">${service.name}</option>`;
+        });
+        serviceSelect.disabled = false;
+      } else {
+        serviceSelect.disabled = true;
+        priceCell.textContent = "0.00";
+        qtyInput.disabled = true;
+        totalCell.textContent = "0.00";
+      }
+    });
+
+    serviceSelect.addEventListener("change", () => {
+      const selectedOption = serviceSelect.selectedOptions[0];
+      const price = parseFloat(selectedOption.dataset.price || 0);
+      priceCell.textContent = price.toFixed(2);
+      qtyInput.disabled = false;
+      updateTotal();
+    });
+
+    qtyInput.addEventListener("input", updateTotal);
+
+    function updateTotal() {
+      const selectedOption = serviceSelect.selectedOptions[0];
+      const price = parseFloat(selectedOption?.dataset.price || 0);
+      const quantity = parseInt(qtyInput.value) || 1;
+      const total = price * quantity;
+      totalCell.textContent = total.toFixed(2);
+    }
+
+    tr.appendChild(createTd(categorySelect));
+    tr.appendChild(createTd(serviceSelect));
+    tr.appendChild(createTd(priceCell));
+    tr.appendChild(createTd(qtyInput));
+    tr.appendChild(createTd(totalCell));
+
+    document.getElementById("servicesBody").appendChild(tr);
+  }
+
+  function createTd(content) {
+    const td = document.createElement("td");
+    td.appendChild(content);
+    return td;
+  }
+
+  document.getElementById("addServiceBtn").addEventListener("click", createServiceRow);
+
+  loadServicesData(); // تحميل الخدمات عند بداية الصفحة
 </script>
-
-</body>
-</html>

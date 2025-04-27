@@ -66,7 +66,19 @@
     
                     <h2>اختر الخدمات المطلوبة:</h2>
     
-                    <%- include('partials/services-selection') %>
+                    <table id="servicesTable">
+                      <thead>
+                        <tr>
+                          <th>الخدمة</th>
+                          <th>سعر الوحدة</th>
+                          <th>الكمية</th>
+                          <th>الإجمالي</th>
+                          <th>حذف</th>
+                        </tr>
+                      </thead>
+                      <tbody id="servicesBody"></tbody>
+                    </table>
+                    <button type="button" id="addServiceButton">➕ إضافة خدمة</button>
     
                
     
@@ -186,15 +198,20 @@
 document.getElementById("orderForm").addEventListener("submit", async function(event) {
   event.preventDefault();
 
-  const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"][name="services"]:checked')).map(cb => {
-    const qtyInput = cb.closest('tr').querySelector('.qty-input');
-    return {
-      id: parseInt(cb.dataset.id),
-      quantity: parseInt(qtyInput?.value || 1)
-    };
-  });
+  const selectedServices = Array.from(document.querySelectorAll("#servicesBody tr")).map(row => {
+    const serviceSelect = row.querySelector("select.service-select");
+    const qtyInput = row.querySelector("input.qty-input");
+    const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
 
-  const totalPrice = parseFloat(document.getElementById("totalPrice").innerText);
+    if (!serviceSelect.value) return null;
+
+    return {
+      id: parseInt(serviceSelect.value),
+      quantity: parseInt(qtyInput.value || 1)
+    };
+  }).filter(s => s !== null);
+
+  const totalPrice = parseFloat(document.getElementById("totalPrice").innerText) || 0;
 
   const orderData = {
     customerPhone: document.getElementById("customerPhone").value,
@@ -219,9 +236,9 @@ document.getElementById("orderForm").addEventListener("submit", async function(e
     if (response.ok && result.success) {
       alert("تم إرسال الطلب بنجاح!");
       document.getElementById("orderForm").reset();
-      document.getElementById("totalPrice").innerText = "0";
-      document.getElementById("baseTotal").innerText = "0";
-      document.getElementById("vatAmount").innerText = "0";
+      document.getElementById("servicesBody").innerHTML = ''; // تصفير الجدول
+      addServiceRow(); // إضافة صف فارغ جديد
+      calculateOrderTotals(); // تصفير الأسعار
     } else {
       alert("حدث خطأ: " + (result.error || result.message));
     }
@@ -230,6 +247,7 @@ document.getElementById("orderForm").addEventListener("submit", async function(e
     alert("حدث خطأ أثناء إرسال الطلب.");
   }
 });
+
 
 async function filterOrders() {
   const name = document.getElementById("searchName").value.trim();
@@ -369,29 +387,29 @@ window.addEventListener('DOMContentLoaded', fetchOrders);
             section.style.display = section.style.display === "none" ? "block" : "none";
         }
     
-        document.getElementById("orderForm").addEventListener("change", function() {
-    let baseTotal = 0;
+//         document.getElementById("orderForm").addEventListener("change", function() {
+//     let baseTotal = 0;
 
-    document.querySelectorAll('input[type="checkbox"]:checked').forEach(service => {
-        const container = service.closest(".service-item");
-        const qtyInput = container.querySelector(".qty-input");
-        const quantity = parseInt(qtyInput?.value || 1);
-        const price = parseFloat(service.dataset.price);
-        baseTotal += price * quantity;
-    });
+//     document.querySelectorAll('input[type="checkbox"]:checked').forEach(service => {
+//         const container = service.closest(".service-item");
+//         const qtyInput = container.querySelector(".qty-input");
+//         const quantity = parseInt(qtyInput?.value || 1);
+//         const price = parseFloat(service.dataset.price);
+//         baseTotal += price * quantity;
+//     });
 
-    const vat = baseTotal * 0.15;
-    const grandTotal = baseTotal + vat;
+//     const vat = baseTotal * 0.15;
+//     const grandTotal = baseTotal + vat;
 
-    document.getElementById('baseTotal').innerText = baseTotal.toFixed(2);
-    document.getElementById('vatAmount').innerText = vat.toFixed(2);
-    document.getElementById('totalPrice').innerText = grandTotal.toFixed(2);
-});
-document.addEventListener("input", function (event) {
-  if (event.target.classList.contains("qty-input")) {
-    document.getElementById("orderForm").dispatchEvent(new Event('change'));
-  }
-});
+//     document.getElementById('baseTotal').innerText = baseTotal.toFixed(2);
+//     document.getElementById('vatAmount').innerText = vat.toFixed(2);
+//     document.getElementById('totalPrice').innerText = grandTotal.toFixed(2);
+// });
+// document.addEventListener("input", function (event) {
+//   if (event.target.classList.contains("qty-input")) {
+//     document.getElementById("orderForm").dispatchEvent(new Event('change'));
+//   }
+// });
 
 async function logout() {
     const res = await fetch('/logout', { method: 'POST' });
@@ -404,5 +422,114 @@ async function logout() {
     
        
     </script>  
+    <script>
+    // تحميل كل الخدمات مصنفة
+async function loadServices() {
+  const res = await fetch("/api/services");
+  const data = await res.json();
+
+  window.groupedServices = data;
+  window.categories = Object.keys(data);
+
+  addServiceRow(); // أول صف تلقائي
+}
+
+// إضافة صف جديد
+function addServiceRow() {
+  const tbody = document.getElementById("servicesBody");
+  const tr = document.createElement("tr");
+
+  tr.innerHTML = `
+    <td>
+      <select class="category-select">
+        <option value="">اختر التصنيف</option>
+        ${window.categories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+      </select>
+    </td>
+    <td>
+      <select class="service-select" disabled>
+        <option value="">اختر خدمة</option>
+      </select>
+    </td>
+    <td><span class="unit-price">0.00</span> SAR</td>
+    <td><input type="number" class="qty-input" min="1" value="1" disabled></td>
+    <td><span class="line-total">0.00</span> SAR</td>
+    <td><button type="button" onclick="removeServiceRow(this)">🗑️</button></td>
+  `;
+
+  tbody.appendChild(tr);
+
+  const categorySelect = tr.querySelector('.category-select');
+  const serviceSelect = tr.querySelector('.service-select');
+  const qtyInput = tr.querySelector('.qty-input');
+
+  categorySelect.addEventListener('change', () => {
+    const selectedCategory = categorySelect.value;
+    serviceSelect.innerHTML = '<option value="">اختر خدمة</option>';
+    serviceSelect.disabled = !selectedCategory;
+
+    if (selectedCategory) {
+      window.groupedServices[selectedCategory].forEach(service => {
+        serviceSelect.innerHTML += `<option value="${service.id}" data-price="${service.price}">${service.name}</option>`;
+      });
+    }
+    updateRowTotal(tr);
+  });
+
+  serviceSelect.addEventListener('change', () => {
+    const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+    const price = parseFloat(selectedOption.dataset.price || 0);
+
+    tr.querySelector('.unit-price').innerText = price.toFixed(2);
+    qtyInput.disabled = !price;
+    updateRowTotal(tr);
+  });
+
+  qtyInput.addEventListener('input', () => {
+    if (parseInt(qtyInput.value) < 1) qtyInput.value = 1;
+    updateRowTotal(tr);
+  });
+}
+
+// حذف صف
+function removeServiceRow(btn) {
+  btn.closest('tr').remove();
+  calculateOrderTotals();
+}
+
+// تحديث المجموع للصف
+function updateRowTotal(row) {
+  const price = parseFloat(row.querySelector('.unit-price').innerText) || 0;
+  const qty = parseInt(row.querySelector('.qty-input').value) || 1;
+  const total = price * qty;
+
+  row.querySelector('.line-total').innerText = total.toFixed(2);
+
+  calculateOrderTotals();
+}
+
+// حساب الإجمالي
+function calculateOrderTotals() {
+  let baseTotal = 0;
+
+  document.querySelectorAll("#servicesBody tr").forEach(row => {
+    const total = parseFloat(row.querySelector('.line-total').innerText) || 0;
+    baseTotal += total;
+  });
+
+  const vat = baseTotal * 0.15;
+  const grandTotal = baseTotal + vat;
+
+  document.getElementById('baseTotal').innerText = baseTotal.toFixed(2);
+  document.getElementById('vatAmount').innerText = vat.toFixed(2);
+  document.getElementById('totalPrice').innerText = grandTotal.toFixed(2);
+}
+
+// زر إضافة خدمة
+document.getElementById("addServiceButton").addEventListener("click", addServiceRow);
+
+// تحميل الخدمات مع بداية الصفحة
+document.addEventListener("DOMContentLoaded", loadServices);
+    </script>
 </body>
 </html>

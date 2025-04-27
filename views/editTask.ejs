@@ -5,71 +5,62 @@
   <title>تعديل الطلب</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
   <style>
-    body { background-color: #f8f9fa; padding: 20px; }
+    body { background-color: #f8f9fa; padding: 20px; font-family: 'Arial', sans-serif; }
     .form-container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    .form-label { font-weight: bold; }
-    .services-section h4 { cursor: pointer; margin-top: 15px; }
-    #totalPrice { font-weight: bold; color: #f15a29; }
+    .logo { width: 80px; display: block; margin: 10px auto; }
+    .container { max-width: 800px; margin: auto; }
+    #services-container { margin-top: 20px; }
+    table { width: 100%; margin-top: 10px; }
+    th, td { text-align: center; padding: 8px; }
+    .btn-danger { margin-top: 5px; }
   </style>
-  <style>
-    body { font-family: 'Arial', sans-serif; background-color: #f9f9f9; text-align: right; direction: rtl; padding: 20px; }
-    .container { max-width: 700px; margin: auto; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    h3 { margin-bottom: 10px; cursor: pointer; user-select: none; }
-    label { display: block; margin-bottom: 5px; }
-    input[type="checkbox"] { margin-left: 10px; }
-    input[type="submit"] { margin-top: 20px; padding: 10px 20px; background-color: #f15a29; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    #totalPrice { font-size: 1.2em; color: #f15a29; }
-    .logo {
-        width: 80px; /* Adjust size as needed */
-        height: auto; /* Maintain aspect ratio */
-        display: block;
-        margin: 10px auto; /* Add spacing */
-    }
-    .container{
-      background-color: rgb(52, 80, 124);
-    }
-</style>
 </head>
+
 <body>
 <div class="container">
-  <img src="\Artboard 5@5x.png" alt="logo" class="logo" >
+  <img src="/Artboard 5@5x.png" alt="logo" class="logo">
   <div class="form-container">
     <h2>تعديل الطلب</h2>
-    <form id="editTaskForm" action="/edit_task/<%= task.id %>" method="POST" onsubmit="prepareServicesBeforeSubmit()">
+    <form id="editTaskForm">
 
+      <!-- بيانات العميل -->
       <div class="mb-3">
         <label class="form-label">اسم العميل</label>
         <input type="text" class="form-control" name="customerName" value="<%= task.customerName %>" required>
       </div>
-
       <div class="mb-3">
         <label class="form-label">رقم الهاتف</label>
         <input type="text" class="form-control" name="customerPhone" value="<%= task.customerPhone %>" required>
       </div>
 
-      <div class="row">
-        <input id="map-search" type="text" placeholder="ابحث عن موقع" class="form-control my-3">
-<div id="map" style="height: 300px; width: 100%; margin-bottom: 15px;"></div>
-<input type="hidden" id="customerLat" name="customerLat" value="<%= task.customerLat %>">
-<input type="hidden" id="customerLng" name="customerLng" value="<%= task.customerLng %>">
+      <!-- خريطة تحديد الموقع -->
+      <div id="map" style="height: 300px; width: 100%; margin-bottom: 15px;"></div>
+      <input type="hidden" id="customerLat" name="customerLat" value="<%= task.customerLat %>">
+      <input type="hidden" id="customerLng" name="customerLng" value="<%= task.customerLng %>">
+      <input type="hidden" id="customerLocation" name="customerLocation">
+        
+        
 
+      <!-- الخدمات -->
+      <h2>اختر الخدمات المطلوبة:</h2>
+      <div id="services-container">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>التصنيف</th>
+              <th>الخدمة</th>
+              <th>السعر</th>
+              <th>الكمية</th>
+              <th>الإجمالي</th>
+              <th>حذف</th>
+            </tr>
+          </thead>
+          <tbody id="servicesBody"></tbody>
+        </table>
+        <button type="button" class="btn btn-success" onclick="addServiceRow()">➕ إضافة خدمة أخرى</button>
+      </div>
 
-
-        </div>
-      <!-- </div> -->
-
-      <!-- خدمات متعددة -->
-      <!-- <div class="services-section mt-4">
-       
-      </div> -->
-      <%- include('partials/services-selection', {
-        allServices: allServices,
-        selectedServiceIds: selectedServiceIds || [],
-        serviceQuantities: serviceQuantities || {}
-      }) %>
-      
-      
-
+      <!-- وقت الخدمة والدفع -->
       <div class="mb-3 mt-3">
         <label class="form-label">وقت الخدمة</label>
         <input type="text" class="form-control" name="serviceTime" value="<%= task.serviceTime %>" required>
@@ -84,415 +75,251 @@
         </select>
       </div>
 
-      <%- include('partials/services-selection', { allServices, serviceQuantities, selectedServiceIds: task.serviceIds }) %>
+      <!-- الحالة -->
       <div class="mb-3">
-  <label class="form-label">الحالة</label>
-  <select class="form-select" name="status" required>
-    <option value="Assigned" <%= task.status === 'Assigned' ? 'selected' : '' %>>Assigned</option>
-    <option value="InProgress" <%= task.status === 'InProgress' ? 'selected' : '' %>>In Progress</option>
-    <option value="On Hold" <%= task.status === 'On Hold' ? 'selected' : '' %>>On Hold</option>
-    <option value="completed" <%= task.status === 'completed' ? 'selected' : '' %>>Completed</option>
-    <option value="canceled" <%= task.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
-    <option value="New" <%= task.status === 'New' ? 'selected' : '' %>>New</option>
-  </select>
-</div>
+        <label class="form-label">الحالة</label>
+        <select class="form-select" name="status" required>
+          <option value="Assigned" <%= task.status === 'Assigned' ? 'selected' : '' %>>Assigned</option>
+          <option value="InProgress" <%= task.status === 'InProgress' ? 'selected' : '' %>>In Progress</option>
+          <option value="On Hold" <%= task.status === 'On Hold' ? 'selected' : '' %>>On Hold</option>
+          <option value="completed" <%= task.status === 'completed' ? 'selected' : '' %>>Completed</option>
+          <option value="canceled" <%= task.status === 'canceled' ? 'selected' : '' %>>Canceled</option>
+          <option value="New" <%= task.status === 'New' ? 'selected' : '' %>>New</option>
+        </select>
+      </div>
 
-      
-      <script>
-        function toggleQuantity(checkbox) {
-          const container = checkbox.closest('.service-item');
-          const qtyInput = container.querySelector('.qty-input');
-      
-          if (checkbox.checked) {
-            qtyInput.style.display = 'inline-block';
-            qtyInput.required = true;
-          } else {
-            qtyInput.style.display = 'none';
-            qtyInput.required = false;
-            qtyInput.value = 1;
-          }
-      
-          updateServicePrice(container);
-          updateTotalPrice();
-        }
-      
-        function updateServicePrice(container) {
-          const checkbox = container.querySelector('input[type="checkbox"]');
-          const priceSpan = container.querySelector('.service-price');
-          const qty = parseInt(container.querySelector('.qty-input')?.value || 1);
-          const basePrice = parseFloat(checkbox.dataset.price);
-          const total = checkbox.checked ? basePrice * qty : basePrice;
-          priceSpan.textContent = total.toFixed(2);
-        }
-      
-        function updateTotalPrice() {
-          let total = 0;
-          document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-            const qty = parseInt(cb.closest('.service-item').querySelector('.qty-input')?.value || 1);
-            total += parseFloat(cb.dataset.price) * qty;
-          });
-      
-          document.getElementById('totalPrice').innerText = total.toFixed(2);
-          document.getElementById('hiddenTotalPrice').value = total.toFixed(2);
-        }
-      
-        document.querySelectorAll('.qty-input').forEach(input => {
-          input.addEventListener('input', function () {
-            updateServicePrice(this.closest('.service-item'));
-            updateTotalPrice();
-          });
-        });
-      
-        window.onload = updateTotalPrice;
-      </script>
+      <!-- إجمالي السعر -->
+      <div class="mb-3">
+        <h5>الإجمالي بدون ضريبة: <span id="baseTotal">0</span> SAR</h5>
+        <h5>ضريبة القيمة المضافة (15%): <span id="vatAmount">0</span> SAR</h5>
+        <h5><strong>الإجمالي الكلي: <span id="totalPrice">0</span> SAR</strong></h5>
+        <input type="hidden" name="totalPrice" id="hiddenTotalPrice" value="0">
+      </div>
 
-<div class="mb-3">
-  <h5>الإجمالي بدون ضريبة: <span id="baseTotal"><%= (task.totalPrice / 1.15).toFixed(2) %></span> SAR</h5>
-  <h5>ضريبة القيمة المضافة (15%): <span id="vatAmount"><%= ((task.totalPrice / 1.15) * 0.15).toFixed(2) %></span> SAR</h5>
-  <h5><strong>الإجمالي الكلي: <span id="totalPrice"><%= task.totalPrice %></span> SAR</strong></h5>
-  <input type="hidden" name="totalPrice" id="hiddenTotalPrice" value="<%= task.totalPrice %>">
-  
-</div>
-
-
-      <!-- <input type="hidden" name="totalPrice" id="hiddenTotalPrice"> -->
-
-
-      <button type="submit" class="btn btn-primary w-100" >💾 حفظ التعديلات</button>
+      <!-- زر الحفظ -->
+      <button type="submit" class="btn btn-primary w-100">💾 حفظ التعديلات</button>
 
     </form>
   </div>
 </div>
 
+<!-- سكريبت -->
 <script>
-  document.getElementById("editTaskForm").addEventListener("change", function() {
-    let baseTotal = 0;
+const allServices = <%- JSON.stringify(allServices || []) %>;
+const selectedServiceIds = <%- JSON.stringify(selectedServiceIds || []) %>;
+const serviceQuantities = <%- JSON.stringify(serviceQuantities || {}) %>;
 
-    document.querySelectorAll('input[type="checkbox"]:checked').forEach(service => {
-        const container = service.closest(".service-item");
-        const qtyInput = container.querySelector(".qty-input");
-        const quantity = parseInt(qtyInput?.value || 1);
-        const price = parseFloat(service.dataset.price);
-        baseTotal += price * quantity;
-    });
+function createServiceOptions(category) {
+  return allServices.filter(s => s.category === category)
+    .map(s => `<option value="${s.id}" data-price="${s.price}">${s.name}</option>`).join('');
+}
 
-    const vat = baseTotal * 0.15;
-    const grandTotal = baseTotal + vat;
+function addServiceRow(selected = {}) {
+  const tbody = document.getElementById("servicesBody");
+  const row = document.createElement("tr");
 
-    document.getElementById('baseTotal').innerText = baseTotal.toFixed(2);
-    document.getElementById('vatAmount').innerText = vat.toFixed(2);
-    document.getElementById('totalPrice').innerText = grandTotal.toFixed(2);
-});
-document.addEventListener("input", function (event) {
-  if (event.target.classList.contains("qty-input")) {
-    document.getElementById("orderForm").dispatchEvent(new Event('change'));
+  const categories = [...new Set(allServices.map(s => s.category))];
+  const selectedCategory = selected.category || categories[0];
+
+  row.innerHTML = `
+    <td><select class="form-control category-select">${categories.map(c => `<option value="${c}" ${c === selectedCategory ? 'selected' : ''}>${c}</option>`)}</select></td>
+    <td><select class="form-control service-select"></select></td>
+    <td><span class="unit-price">0</span> SAR</td>
+    <td><input type="number" class="form-control qty-input" value="${selected.quantity || 1}" min="1"></td>
+    <td><span class="line-total">0</span> SAR</td>
+    <td><button type="button" class="btn btn-danger" onclick="this.closest('tr').remove(); calculateOrderTotals();">🗑️ حذف</button></td>
+  `;
+  tbody.appendChild(row);
+
+  const categorySelect = row.querySelector(".category-select");
+  const serviceSelect = row.querySelector(".service-select");
+  const qtyInput = row.querySelector(".qty-input");
+
+  function updateServiceOptions() {
+    serviceSelect.innerHTML = createServiceOptions(categorySelect.value);
+    updateRowPrices();
   }
-});
 
-  function prepareServicesBeforeSubmit() {
-    const form = document.getElementById('editTaskForm');
-    document.querySelectorAll('.dynamic-service-hidden').forEach(el => el.remove());
-    document.querySelectorAll("input[type='checkbox']:checked").forEach(cb => {
-      const serviceId = cb.dataset.id;
-      const qty = cb.closest(".service-item").querySelector(".qty-input").value || 1;
-      const hidden = document.createElement("input");
-      hidden.type = "hidden";
-      hidden.name = `qty_${serviceId}`;
-      hidden.value = qty;
-      hidden.classList.add("dynamic-service-hidden");
-      form.appendChild(hidden);
-    });
+  function updateRowPrices() {
+    const price = parseFloat(serviceSelect.selectedOptions[0]?.dataset.price || 0);
+    const qty = parseInt(qtyInput.value) || 1;
+    row.querySelector(".unit-price").innerText = price.toFixed(2);
+    row.querySelector(".line-total").innerText = (price * qty).toFixed(2);
+    calculateOrderTotals();
   }
-</script>
-<script>
-  window.preSelectedServiceQuantities = <%- JSON.stringify(serviceQuantities || {})  %>;
-</script>
 
+  categorySelect.addEventListener("change", updateServiceOptions);
+  serviceSelect.addEventListener("change", updateRowPrices);
+  qtyInput.addEventListener("input", updateRowPrices);
 
+  updateServiceOptions();
 
+  if (selected.serviceId) {
+    serviceSelect.value = selected.serviceId;
+    updateRowPrices();
+  }
+}
 
-
-<script>
-    function toggleVisibility(sectionId) {
-        const section = document.getElementById(sectionId);
-        section.style.display = section.style.display === "none" ? "block" : "none";
-    }
-
-    // document.getElementById("orderForm").addEventListener("change", function() {
-    //     let total = 0;
-    //     document.querySelectorAll('input[type="checkbox"]:checked').forEach(service => {
-    //         total += parseFloat(service.dataset.price);
-    //     });
-    //     document.getElementById('totalPrice').innerText = total;
-    // });
-
-    document.getElementById("editTaskForm").addEventListener("submit", async function (event) {
-  event.preventDefault();
-
-  const form = document.getElementById("editTaskForm");
-  const formData = new FormData(form);
-
-  const services = [];
-  document.querySelectorAll('input[type="checkbox"][name="services"]:checked').forEach(cb => {
-    const qtyInput = cb.closest("tr").querySelector(".qty-input");
-    services.push({ id: parseInt(cb.dataset.id), quantity: parseInt(qtyInput?.value || 1) });
+function calculateOrderTotals() {
+  let baseTotal = 0;
+  document.querySelectorAll('#servicesBody tr').forEach(row => {
+    const lineTotal = parseFloat(row.querySelector('.line-total').innerText) || 0;
+    baseTotal += lineTotal;
   });
-
-  if (!services.length) {
-    alert("يجب اختيار خدمة واحدة على الأقل.");
-    return;
-  }
-
-  const baseTotal = services.reduce((sum, s) => {
-    const checkbox = document.querySelector(`input[data-id="${s.id}"]`);
-    return sum + parseFloat(checkbox.dataset.price) * s.quantity;
-  }, 0);
-
   const vat = baseTotal * 0.15;
   const total = baseTotal + vat;
+  document.getElementById('baseTotal').innerText = baseTotal.toFixed(2);
+  document.getElementById('vatAmount').innerText = vat.toFixed(2);
+  document.getElementById('totalPrice').innerText = total.toFixed(2);
+  document.getElementById('hiddenTotalPrice').value = total.toFixed(2);
+}
 
-  const taskId = "<%= task.id %>";
+// تحميل البيانات الحالية
+window.onload = () => {
+  if (selectedServiceIds.length > 0) {
+    selectedServiceIds.forEach(id => {
+      const service = allServices.find(s => s.id === id);
+      if (service) {
+        addServiceRow({
+          category: service.category,
+          serviceId: service.id,
+          quantity: serviceQuantities[service.id] || 1
+        });
+      }
+    });
+  } else {
+    addServiceRow();
+  }
+  calculateOrderTotals();
+};
+
+// حفظ البيانات
+document.getElementById("editTaskForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const form = new FormData(this);
+
+  const services = [];
+  document.querySelectorAll('#servicesBody tr').forEach(row => {
+    const serviceId = parseInt(row.querySelector('.service-select').value);
+    const quantity = parseInt(row.querySelector('.qty-input').value) || 1;
+    services.push({ id: serviceId, quantity });
+  });
 
   const payload = {
-    customerPhone: formData.get("customerPhone"),
-    customerName: formData.get("customerName"),
-    customerLat: parseFloat(formData.get("customerLat")),
-    customerLng: parseFloat(formData.get("customerLng")),
-    serviceTime: formData.get("serviceTime"),
-    paymentMethod: formData.get("paymentMethod"),
-    status: formData.get("status"),
-    totalPrice: total,
+    customerPhone: form.get("customerPhone"),
+    customerName: form.get("customerName"),
+    customerLat: parseFloat(form.get("customerLat")),
+    customerLng: parseFloat(form.get("customerLng")),
+    serviceTime: form.get("serviceTime"),
+    paymentMethod: form.get("paymentMethod"),
+    status: form.get("status"),
+    totalPrice: parseFloat(document.getElementById('hiddenTotalPrice').value),
     services: services
   };
 
   try {
-    const response = await fetch(`/edit_task/${taskId}`, {
+    const response = await fetch(`/edit_task/<%= task.id %>`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-
     const result = await response.json();
     if (response.ok && result.success) {
-      alert("تم حفظ التعديلات بنجاح!");
+      alert("✅ تم حفظ التعديلات بنجاح");
       window.location.href = "/admin_dashboard";
     } else {
-      alert("فشل التحديث: " + (result.message || "خطأ غير معروف"));
+      alert("❌ فشل الحفظ: " + (result.message || "خطأ غير معروف"));
     }
   } catch (err) {
-    console.error("Error:", err);
-    alert("حدث خطأ أثناء إرسال الطلب");
+    console.error(err);
+    alert("❌ حدث خطأ أثناء الإرسال");
   }
 });
-
-  
-
-//     function updateTotalPrice() {
-//   let total = 0;
-//   document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-//     total += parseFloat(cb.dataset.price);
-//   });
-//   document.getElementById('totalPrice').innerText = total.toFixed(2);
-//   document.getElementById('hiddenTotalPrice').value = total.toFixed(2);
-// }
-
-// document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-//   cb.addEventListener('change', updateTotalPrice);
-// });
-
-// window.onload = updateTotalPrice;
-
-const selectedServices = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => {
-  const qtyInput = cb.closest('.service-item').querySelector('.qty-input');
-  return {
-    id: cb.dataset.id,
-    quantity: parseInt(qtyInput?.value || 1)
-  };
-});
-
-const orderData = {
- 
-  services: selectedServices,
-  totalPrice: parseFloat(document.getElementById("totalPrice").innerText)
-};
 </script>
+<!-- Google Maps API -->
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAFZcWUfcnxoAlGVGf7X7b4pE2IxbHDYzw&libraries=places"></script>
+
 <script>
-  let map, marker, geocoder, searchBox;
+let map, marker, geocoder, searchBox;
 
-  function initMap() {
-      const initialPosition = { lat: 24.7136, lng: 46.6753 };
-      map = new google.maps.Map(document.getElementById('map'), {
-          center: initialPosition,
-          zoom: 10
-      });
+function initMap() {
+    const initialPosition = {
+        lat: parseFloat(document.getElementById('customerLat').value) || 24.7136,
+        lng: parseFloat(document.getElementById('customerLng').value) || 46.6753
+    };
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: initialPosition,
+        zoom: 10
+    });
 
-      geocoder = new google.maps.Geocoder();
+    geocoder = new google.maps.Geocoder();
+    placeMarker(initialPosition);
 
-      map.addListener('click', function(event) {
-          placeMarker(event.latLng);
-      });
+    map.addListener('click', function(event) {
+        placeMarker(event.latLng);
+    });
 
-      const input = document.getElementById('map-search');
-      searchBox = new google.maps.places.SearchBox(input);
+    const input = document.createElement("input");
+    input.setAttribute("id", "map-search");
+    input.setAttribute("type", "text");
+    input.setAttribute("placeholder", "ابحث عن موقع");
+    input.classList.add("form-control");
+    input.style.marginBottom = "10px";
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 
-      map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+    searchBox = new google.maps.places.SearchBox(input);
 
-      map.addListener('bounds_changed', function() {
-          searchBox.setBounds(map.getBounds());
-      });
+    map.addListener('bounds_changed', function() {
+        searchBox.setBounds(map.getBounds());
+    });
 
-      searchBox.addListener('places_changed', function() {
-          const places = searchBox.getPlaces();
-
-          if (places.length === 0) return;
-
-          const place = places[0];
-          if (!place.geometry) return;
-
-          if (marker) marker.setMap(null);
-
-          map.panTo(place.geometry.location);
-          placeMarker(place.geometry.location);
-      });
-  }
-
-  let selectedLocation = { lat: null, lng: null };
+    searchBox.addListener('places_changed', function() {
+        const places = searchBox.getPlaces();
+        if (places.length === 0) return;
+        const place = places[0];
+        if (!place.geometry) return;
+        placeMarker(place.geometry.location);
+        map.panTo(place.geometry.location);
+    });
+}
 
 function placeMarker(location) {
-  if (marker) marker.setMap(null);
+    if (marker) marker.setMap(null);
 
-  marker = new google.maps.Marker({
-      position: location,
-      map: map,
-      draggable: true
-  });
+    marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        draggable: true
+    });
 
-  selectedLocation.lat = location.lat();
-  selectedLocation.lng = location.lng();
+    updateLocationFields(location);
 
-  // Set hidden fields
-  document.getElementById('customerLat').value = selectedLocation.lat;
-  document.getElementById('customerLng').value = selectedLocation.lng;
-
-  geocoder.geocode({ 'location': location }, function(results, status) {
-      if (status === 'OK' && results[0]) {
-          document.getElementById('customerLocation').value = results[0].formatted_address;
-      } else {
-          document.getElementById('customerLocation').value = `Lat: ${location.lat()}, Lng: ${location.lng()}`;
-      }
-  });
-
-  marker.addListener('dragend', function() {
-      selectedLocation.lat = marker.getPosition().lat();
-      selectedLocation.lng = marker.getPosition().lng();
-
-      document.getElementById('customerLat').value = selectedLocation.lat;
-      document.getElementById('customerLng').value = selectedLocation.lng;
-
-      geocoder.geocode({ 'location': marker.getPosition() }, function(results, status) {
-          if (status === 'OK' && results[0]) {
-              document.getElementById('customerLocation').value = results[0].formatted_address;
-          } else {
-              document.getElementById('customerLocation').value = `Lat: ${selectedLocation.lat}, Lng: ${selectedLocation.lng}`;
-          }
-      });
-  });
+    marker.addListener('dragend', function() {
+        updateLocationFields(marker.getPosition());
+    });
 }
 
-  function getLocation() {
-      if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(function(position) {
-              const userLocation = {
-                  lat: position.coords.latitude,
-                  lng: position.coords.longitude
-              };
-              map.setCenter(userLocation);
-              placeMarker(userLocation);
-          }, function() {
-              alert("تعذر تحديد الموقع الحالي");
-          });
-      } else {
-          alert("متصفحك لا يدعم خدمة تحديد الموقع");
-      }
-  }
-  function updateLocationFields(location) {
-  document.getElementById('customerLat').value = location.lat();
-  document.getElementById('customerLng').value = location.lng();
+function updateLocationFields(location) {
+    document.getElementById('customerLat').value = location.lat();
+    document.getElementById('customerLng').value = location.lng();
+
+    geocoder.geocode({ location: location }, function(results, status) {
+        if (status === 'OK' && results[0]) {
+            document.getElementById('customerLocation').value = results[0].formatted_address;
+        } else {
+            document.getElementById('customerLocation').value = `Lat: ${location.lat()}, Lng: ${location.lng()}`;
+        }
+    });
 }
 
-
-  window.onload = initMap;
-  window.onload = () => {
-  initMap();
-
-  // في حال لم يضغط المستخدم على الخريطة، نتأكد من إرسال القيم الحالية من قاعدة البيانات
-  if (!document.getElementById('customerLat').value || !document.getElementById('customerLng').value) {
-    document.getElementById('customerLat').value = 24.7136;
-    document.getElementById('customerLng').value = 46.6753;
-  }
-};
-
+// ✅ تأكد أنه يشتغل مع كل تحميل الصفحة
+window.addEventListener('load', () => {
+    initMap();
+});
 </script>
-<script>
-  function prepareServicesBeforeSubmit() {
-    const form = document.getElementById('editTaskForm');
-  
-    // 🧹 إزالة أي عناصر مخفية قديمة
-    document.querySelectorAll('.dynamic-service-hidden').forEach(el => el.remove());
-  
-    document.querySelectorAll("#services-container input[type='checkbox']:checked").forEach(cb => {
-      const serviceId = cb.dataset.id;
-      const qtyInput = cb.closest(".service-item").querySelector(".qty-input");
-      const quantity = qtyInput ? qtyInput.value : 1;
-  
-      // إضافة input مخفي للخدمة المحددة
-      const hiddenService = document.createElement("input");
-      hiddenService.type = "hidden";
-      hiddenService.name = `qty_${serviceId}`;
-      hiddenService.value = quantity;
-      hiddenService.classList.add("dynamic-service-hidden");
-      form.appendChild(hiddenService);
-    });
-  }
-  </script>
-  <script>
-    function updateTotalPrice() {
-      let baseTotal = 0;
-  
-      document.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
-        const qtyInput = cb.closest('.service-item').querySelector('.qty-input');
-        const qty = parseInt(qtyInput?.value || 1);
-        const price = parseFloat(cb.dataset.price);
-        baseTotal += price * qty;
-      });
-      if (baseTotal === 0) return;
-  
-      const vat = baseTotal * 0.15;
-      const grandTotal = baseTotal + vat;
-  
-      document.getElementById('baseTotal').innerText = baseTotal.toFixed(2);
-      document.getElementById('vatAmount').innerText = vat.toFixed(2);
-      document.getElementById('totalPrice').innerText = grandTotal.toFixed(2);
-      document.getElementById('hiddenTotalPrice').value = grandTotal.toFixed(2);
-    }
-  
-    document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll('.qty-input').forEach(input => {
-        input.addEventListener('input', updateTotalPrice);
-      });
-  
-      document.querySelectorAll("input[type='checkbox']").forEach(cb => {
-        cb.addEventListener('change', () => {
-          toggleQuantity(cb);
-          updateTotalPrice();
-        });
-      });
-  
-      updateTotalPrice();
-    });
-  </script>
-  
+
+
+
 
 </body>
 </html>

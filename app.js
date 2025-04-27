@@ -503,7 +503,7 @@ app.post('/addtask', (req, res) => {
   } = req.body;
 
   const createdByUserId = req.session?.user?.id || null;
-  const createdBySupplier = req.session?.user?. username || 'Admin';
+  const createdBySupplier = req.session?.user?.fullName || 'Admin';
 
   if (
     !customerPhone || !customerName || !customerLat || !customerLng ||
@@ -913,6 +913,7 @@ app.get('/edit_task/:id', (req, res) => {
     ], err => {
       if (err) return res.status(500).json({ success: false, message: "فشل التحديث", error: err.message });
   
+      // حذف الخدمات القديمة
       db.run(`DELETE FROM task_services WHERE task_id = ?`, [taskId], err => {
         if (err) return res.status(500).json({ success: false, message: "فشل حذف الخدمات" });
   
@@ -927,6 +928,7 @@ app.get('/edit_task/:id', (req, res) => {
       });
     });
   });
+  
   //////////////////////////////
   app.get("/orders-by-supplier", (req, res) => {
     const supplier = req.query.supplier;
