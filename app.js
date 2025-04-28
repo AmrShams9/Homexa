@@ -1015,52 +1015,65 @@ app.get("/chart", (req, res) => {
 });
 
 app.get('/search-order/:phone', (req, res) => {
-    const { phone } = req.params;
+  const { phone } = req.params;
 
-    if (!phone) {
-        return res.status(400).json({ 
-            message: 'Phone number is required' 
-        });
+  if (!phone || phone.trim() === "") {
+    return res.status(400).json({ success: false, message: 'رقم الهاتف مطلوب' });
+  }
+
+  db.get(`
+    SELECT 
+      id,
+      customerPhone,
+      customerName,
+      customerLat,
+      customerLng,
+      serviceDate,
+      serviceTime,
+      paymentMethod,
+      status,
+      totalPrice,
+      createdAt
+    FROM tasks 
+    WHERE customerPhone = ?
+    ORDER BY createdAt DESC
+    LIMIT 1
+  `, [phone.trim()], (err, task) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ success: false, message: 'خطأ في قاعدة البيانات', error: err.message });
     }
 
-    const query = `
-        SELECT 
-            customerPhone, 
-            customerName, 
-            customerLat,
-            customerLng,
-            
-            serviceTime, 
-            paymentMethod
-        FROM tasks 
-        WHERE customerPhone = ?
-    `;
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'لا يوجد طلب مرتبط بهذا الرقم' });
+    }
 
-    db.get(query, [phone], (err, order) => {
-        if (err) {
-            console.error('Database error:', err);
-            return res.status(500).json({ 
-                message: 'Server error while searching order',
-                error: err.message 
-            });
-        }
+    // إضافة رابط الخريطة حسب خطوط الطول والعرض
+    task.customerLocation = `https://www.google.com/maps?q=${task.customerLat},${task.customerLng}`;
 
-        if (!order) {
-            return res.status(404).json({ 
-                message: 'No order found with this phone number' 
-            });
-        }
-
-        // Construct Google Maps URL using coordinates
-        order.customerLocation = `https://www.google.com/maps?q=${order.customerLat},${order.customerLng}`;
-
-        // Optionally, remove the latitude and longitude fields from the response
-        delete order.customerLat;
-        delete order.customerLng;
-
-        res.json(order);
+    res.json({
+      success: true,
+      task: {
+        id: task.id,
+        customerPhone: task.customerPhone,
+        customerName: task.customerName,
+        customerLat: task.customerLat,
+        customerLng: task.customerLng,
+        customerLocation: task.customerLocation,
+        serviceDate: task.serviceDate,
+        serviceTime: task.serviceTime,
+        paymentMethod: task.paymentMethod,
+        status: task.status,
+        totalPrice: task.totalPrice,
+        createdAt: task.createdAt
+      }
     });
+  });
 });
+
+
+
+
 /////////////////////////////////////////////////
 app.get("/search-tasks", (req, res) => {
   const { name = '', status = '' } = req.query;

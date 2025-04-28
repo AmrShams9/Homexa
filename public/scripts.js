@@ -88,29 +88,52 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function searchOrderByPhone() {
-    const phone = document.getElementById('customerPhone').value;
-    if (!phone) return alert("يرجى إدخال رقم الهاتف أولاً");
-
-    try {
-        const response = await fetch(`/search-order/${phone}`);
-        const data = await response.json();
-
-        if (!response.ok) throw new Error(data.message);
-
-        // عرض البيانات في النموذج
-        document.getElementById("customerName").value = data.customerName;
-        document.getElementById("serviceTime").value = data.serviceTime;
-        document.getElementById("paymentMethod").value = data.paymentMethod;
-
-        if (data.customerLocation) {
-            document.getElementById("customerLocation").value = data.customerLocation;
-        }
-
-    } catch (err) {
-        console.error(err);
-        alert("تعذر العثور على بيانات لهذا الرقم.");
+    const phoneInput = document.getElementById("customerPhone").value.trim();
+    if (!phoneInput) {
+      alert("من فضلك أدخل رقم الهاتف أولاً");
+      return;
     }
-}
+  
+    try {
+      const res = await fetch(`/search-order/${phoneInput}`);
+      const data = await res.json();
+  
+      if (!data.success) {
+        alert(data.message || "لم يتم العثور على طلب.");
+        return;
+      }
+  
+      const order = data.task;
+  
+      // ✅ ملء الحقول بالبيانات المسترجعة
+      document.getElementById("customerName").value = order.customerName || "";
+      document.getElementById("customerLocation").value = order.customerLocation || "";
+      document.getElementById("customerLat").value = order.customerLat || "";
+      document.getElementById("customerLng").value = order.customerLng || "";
+      document.getElementById("serviceDate").value = order.serviceDate || "";
+      document.getElementById("serviceTime").value = order.serviceTime || "";
+      document.getElementById("paymentMethod").value = order.paymentMethod || "";
+  
+      // ✅ مسح الخدمات الحالية
+      document.getElementById("servicesBody").innerHTML = "";
+  
+      // ✅ إعادة بناء الخدمات من الرد
+      if (order.services && order.services.length > 0) {
+        order.services.forEach(service => {
+          addServiceRow({
+            serviceId: service.id, 
+            quantity: service.quantity,
+            category: service.category  // تأكد انك ترجعه من السيرفر لو محتاج
+          });
+        });
+      }
+  
+      updateTotals(); // تحديث الإجمالي بعد تعبئة الخدمات
+    } catch (error) {
+      console.error("خطأ في جلب بيانات الطلب:", error);
+    //   alert("حدث خطأ أثناء البحث.");
+    }
+  }
 
 // Optional: Add event listener to handle Enter key in phone input
 // document.getElementById('customerPhone').addEventListener('keypress', function(event) {
